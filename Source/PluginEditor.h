@@ -25,9 +25,20 @@ public:
     void resized() override;
 
 private:
-    // This reference is provided as a quick way for your editor to
-    // access the processor object that created it.
     ChromaConsoleControllerAudioProcessor& audioProcessor;
+
+    // UI Components
+    juce::ComboBox channelSelector;
+    juce::TextButton updateButton;
+    std::vector<std::unique_ptr<juce::Slider>> ccSliders;
+    std::vector<std::unique_ptr<juce::Label>> ccLabels;
+
+    // Attachments
+    juce::AudioProcessorValueTreeState::ComboBoxAttachment channelAttachment;
+    juce::AudioProcessorValueTreeState::ButtonAttachment updateAttachment;
+    std::vector<std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment>> ccAttachments;
+
+    void createCCControl(const CCControllerConfig& config);
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (ChromaConsoleControllerAudioProcessorEditor)
 };

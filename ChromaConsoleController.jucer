@@ -1,8 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<JUCERPROJECT id="QKnDfl" name="ChromaConsoleController" projectType="audioplug"
-              useAppConfig="0" addUsingNamespaceToJuceHeader="0" jucerFormatVersion="1">
-  <MAINGROUP id="ihV1F5" name="ChromaConsoleController">
+<JUCERPROJECT id="QKnDfl" name="Chroma Console Controller" projectType="audioplug"
+              useAppConfig="0" addUsingNamespaceToJuceHeader="0" jucerFormatVersion="1"
+              pluginCharacteristicsValue="pluginProducesMidiOut" version="0.2"
+              companyName="Cove" companyWebsite="https://www.covedsp.com/"
+              pluginFormats="buildVST3" pluginName="Chroma Console Controller"
+              pluginDesc="A midi controller for the Hologram Electronics Chroma Console"
+              pluginManufacturer="Cove" pluginAUMainType="'aumi'" pluginVST3Category="Tools"
+              pluginAAXCategory="8192" pluginVSTCategory="kPlugCategGenerator">
+  <MAINGROUP id="ihV1F5" name="Chroma Console Controller">
     <GROUP id="{7944C026-5879-F573-7109-4C7608DE8CB1}" name="Source">
       <FILE id="H7J6rb" name="PluginProcessor.cpp" compile="1" resource="0"
             file="Source/PluginProcessor.cpp"/>

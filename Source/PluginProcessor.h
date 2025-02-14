@@ -13,6 +13,15 @@
 //==============================================================================
 /**
 */
+
+struct CCControllerConfig
+{
+    int ccNumber;         // MIDI CC number (0-127)
+    juce::String parameterID;   // Unique ID for the parameter
+    juce::String name;          // Display name
+    float defaultValue;   // Default value (0-127)
+};
+
 class ChromaConsoleControllerAudioProcessor  : public juce::AudioProcessor
 {
 public:
@@ -53,7 +62,19 @@ public:
     void getStateInformation (juce::MemoryBlock& destData) override;
     void setStateInformation (const void* data, int sizeInBytes) override;
 
+    static const std::vector<CCControllerConfig> ccConfigurations;
+    juce::AudioProcessorValueTreeState parameters;
+
+    int getMidiChannel() const noexcept { return *parameters.getRawParameterValue("midiChannel"); }
+    void sendCurrentSliderValues();
+    void sendMidiMessage(const juce::MidiMessage& message);
 private:
+    std::unordered_map<int, int> previousCCValues; // CC number -> last value
+
+    juce::MidiBuffer pendingMidiMessages;
+    juce::CriticalSection pendingMidiMessagesLock;
+
+    juce::AudioProcessorValueTreeState::ParameterLayout createParameterLayout();
     //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (ChromaConsoleControllerAudioProcessor)
 };
