@@ -10,6 +10,7 @@
 
 #include <JuceHeader.h>
 #include "PluginProcessor.h"
+#include "ChildSlider.h"
 
 //==============================================================================
 /**
@@ -24,6 +25,12 @@ public:
     void paint (juce::Graphics&) override;
     void resized() override;
 
+    void runColumnOVC(int column, bool first, bool second, bool third, bool fourth);
+    void setColumnProperties(int column, int value, bool first, bool second, bool third, bool fourth);
+    void setColumnEnabled(int column, bool enabled, bool first, bool second, bool third, bool fourth);
+    void setColumnColour(int colourID, juce::Colour colour, int column, bool first, bool second, bool third, bool fourth);
+    void setColumnColour(std::vector<int> colourIds, juce::Colour colour, int column, bool first, bool second, bool third, bool fourth);
+
 private:
     ChromaConsoleControllerAudioProcessor& audioProcessor;
 
@@ -32,6 +39,8 @@ private:
     juce::TextButton updateButton;
     std::vector<std::unique_ptr<juce::Slider>> ccSliders;
     std::vector<std::unique_ptr<juce::Label>> ccLabels;
+    std::vector<int> sliderColourIds = { juce::Slider::thumbColourId, juce::Slider::trackColourId , juce::Slider::backgroundColourId };
+
 
     // Attachments
     juce::AudioProcessorValueTreeState::ComboBoxAttachment channelAttachment;

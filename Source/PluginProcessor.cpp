@@ -20,23 +20,29 @@ const std::vector<CCControllerConfig> ChromaConsoleControllerAudioProcessor::ccC
     { 64,  "tilt",  "Tilt", 63},  // Tilt
     { 66, "rate", "Rate", 127}, // Rate
     { 68, "time", "Time", 127}, // Time
-    { 70, "mix", "Mix", 127}, // Mix
+
+    { 71, "tAmount", "Amount (Texture)", 63}, // Texture Amount
+    
 
     { 65, "cAmount", "Amount (Character)", 63}, // Character Amount
     { 67, "mAmount", "Amount (Movement)", 63}, // Movement Amount
     { 69, "dAmount", "Amount (Diffusion)", 63}, // Diffusion Amount
-    { 71, "tAmount", "Amount (Texture)", 63}, // Texture Amount
+    
+    { 79, "tVol", "Effect Volume (Texture)", 63}, // Texture Volume
+    
 
     // Secondary Controls
     { 72, "sensitivity", "Sensitivity", 63}, // Sensitivity
     { 74, "mDrift", "Drift (Movement)", 63}, // Movement Drift
     { 76, "dDrift", "Drift (Diffusion)", 63}, // Diffusion Drift
-    { 78, "level", "Output Level", 127}, // Output Level
+    { 70, "mix", "Mix", 127}, // Mix
+    
 
     { 73, "cVol", "Effect Volume (Character)", 63}, // Character Volume
     { 75, "mVol", "Effect Volume (Movement)", 63}, // Movement Volume
     { 77, "dVol", "Effect Volume (Diffusion)", 63}, // Diffusion Volume
-    { 79, "tVol", "Effect Volume (Texture)", 63}, // Texture Volume
+    { 78, "level", "Output Level", 127}, // Output Level
+    
 
     // Bypass Controls
     { 91, "bypass1", "Standard Bypass", 127}, // Standard Bypass

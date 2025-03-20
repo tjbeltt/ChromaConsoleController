@@ -10,6 +10,7 @@
               pluginAAXCategory="8192" pluginVSTCategory="kPlugCategGenerator">
   <MAINGROUP id="ihV1F5" name="Chroma Console Controller">
     <GROUP id="{7944C026-5879-F573-7109-4C7608DE8CB1}" name="Source">
+      <FILE id="wwPbwj" name="ChildSlider.h" compile="0" resource="0" file="Source/ChildSlider.h"/>
       <FILE id="H7J6rb" name="PluginProcessor.cpp" compile="1" resource="0"
             file="Source/PluginProcessor.cpp"/>
       <FILE id="QOoj7p" name="PluginProcessor.h" compile="0" resource="0"

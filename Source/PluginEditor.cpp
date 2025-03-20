@@ -37,14 +37,120 @@ ChromaConsoleControllerAudioProcessorEditor::ChromaConsoleControllerAudioProcess
         createCCControl(config);
     }
 
+    runColumnOVC(0, true, true, true, true);
+    runColumnOVC(1, true, true, true, true);
+    runColumnOVC(2, true, true, true, true);
+    runColumnOVC(3, true, true, false, false);
+
     
-    setResizable(true, true);
+    
+
+    
+    setResizable(false, false);
     setSize(950, 900);
     repaint();
+
+    setColumnProperties(0, ccSliders[0].get()->getValue(), true, true, true, true);
+    setColumnProperties(1, ccSliders[1].get()->getValue(), true, true, true, true);
+    setColumnProperties(2, ccSliders[2].get()->getValue(), true, true, true, true);
+    setColumnProperties(3, ccSliders[3].get()->getValue(), true, true, false, false);
 }
 
 ChromaConsoleControllerAudioProcessorEditor::~ChromaConsoleControllerAudioProcessorEditor()
 {
+}
+
+void ChromaConsoleControllerAudioProcessorEditor::runColumnOVC(int offset, bool first, bool second, bool third, bool fourth)
+{
+    //auto value = ccSliders[0 + offset]->getValue();
+    ccSliders[0 + (offset % 4)]->onValueChange = [this, offset, first, second, third, fourth] { // onValueChange for 'parent' slider in column
+        setColumnProperties(offset, ccSliders[0 + (offset % 4)].get()->getValue(), first, second, third, fourth); // setColumnProperties. 
+        //If any of the first four are disabled, dont run any properties for them. Get the value of the top value slider and pass it into the
+        //function as 'value'
+    };
+}
+
+void ChromaConsoleControllerAudioProcessorEditor::setColumnProperties(int offset, int value, bool first, bool second, bool third, bool fourth)
+{
+    juce::Colour red = juce::Colour(235, 78, 40);
+    juce::Colour yellow = juce::Colour(230, 205, 36);
+    juce::Colour green = juce::Colour(85, 194, 84);
+    juce::Colour blue = juce::Colour(105, 210, 228);
+    juce::Colour purple = juce::Colour(95, 49, 160);
+
+    // Check if sliders in column should be enabled or disabled
+    if (value >= 110) { // If Slider is at max value
+        setColumnEnabled(offset, false, first, second, third, fourth);
+    }
+    else {
+        setColumnEnabled(offset, true, first, second, third, fourth);
+    }
+
+    if (value <= 21) { setColumnColour(sliderColourIds, red, offset, first, second, third, fourth); }
+    else if (value >= 22 && value <= 43) { setColumnColour(sliderColourIds, yellow, offset, first, second, third, fourth); }
+    else if (value >= 44 && value <= 65) { setColumnColour(sliderColourIds, green, offset, first, second, third, fourth); }
+    else if (value >= 66 && value <= 87) { setColumnColour(sliderColourIds, blue , offset, first, second, third, fourth); }
+    else if (value >= 88 && value <= 109) { setColumnColour(sliderColourIds, purple, offset, first, second, third, fourth); }
+    else { setColumnColour(sliderColourIds, getLookAndFeel().findColour(juce::Slider::ColourIds::backgroundColourId), offset, first, second, third, fourth); }
+
+    
+}
+
+// Set the column enabled state
+void ChromaConsoleControllerAudioProcessorEditor::setColumnEnabled(int column, bool enabled, bool first, bool second, bool third, bool fourth) {
+    int offset = column % 4;
+    if (first) {
+        ccSliders[4 + offset]->setEnabled(enabled);
+    }
+    if (second) {
+        ccSliders[8 + offset]->setEnabled(enabled);
+    }
+    if (third) {
+        ccSliders[12 + offset]->setEnabled(enabled);
+    }
+    if (fourth) {
+        ccSliders[16 + offset]->setEnabled(enabled);
+    }
+}
+
+// Set Coloumn Colour with single colourID enum sent
+void ChromaConsoleControllerAudioProcessorEditor::setColumnColour(int colourID, juce::Colour colour, int column, bool first, bool second, bool third, bool fourth) {
+    int offset = column % 4;
+    if (first) {
+        ccSliders[4 + offset]->setColour(colourID, colour);
+    }
+    if (second) {
+        ccSliders[8 + offset]->setColour(colourID, colour);
+    }
+    if (third) {
+        ccSliders[12 + offset]->setColour(colourID, colour);
+    }
+    if (fourth) {
+        ccSliders[16 + offset]->setColour(colourID, colour);
+    }
+}
+
+// Set Coloumn Colour with vector of colour IDs sent.
+void ChromaConsoleControllerAudioProcessorEditor::setColumnColour(std::vector<int> colourIds, juce::Colour colour, int column, bool first, bool second, bool third, bool fourth) {
+    int offset = column % 4;
+    for (int i = 0; i < colourIds.size(); i++) {
+        //Sanity
+        ccSliders[0 + offset]->setColour(colourIds[i], colour);
+
+        if (first) {
+            ccSliders[4 + offset]->setColour(colourIds[i], colour);
+        }
+        if (second) {
+            ccSliders[8 + offset]->setColour(colourIds[i], colour);
+        }
+        if (third) {
+            ccSliders[12 + offset]->setColour(colourIds[i], colour);
+        }
+        if (fourth) {
+            ccSliders[16 + offset]->setColour(colourIds[i], colour);
+        }
+    }
+    
 }
 
 void ChromaConsoleControllerAudioProcessorEditor::createCCControl(const CCControllerConfig& config)
@@ -57,6 +163,8 @@ void ChromaConsoleControllerAudioProcessorEditor::createCCControl(const CCContro
     slider->setEnabled(true);
     addAndMakeVisible(*slider);
     ccSliders.push_back(std::move(slider));
+    
+
 
     // Create and configure label
     auto label = std::make_unique<juce::Label>();
@@ -74,6 +182,7 @@ void ChromaConsoleControllerAudioProcessorEditor::createCCControl(const CCContro
         config.parameterID,
         *ccSliders.back()
     ));
+
 }
 //==============================================================================
 void ChromaConsoleControllerAudioProcessorEditor::paint (juce::Graphics& g)
