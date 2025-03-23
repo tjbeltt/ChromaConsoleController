@@ -86,11 +86,12 @@ void ChromaConsoleControllerAudioProcessorEditor::setColumnProperties(int offset
         setColumnEnabled(offset, true, first, second, third, fourth);
     }
 
-    if (value <= 21) { setColumnColour(sliderColourIds, red, offset, first, second, third, fourth); }
-    else if (value >= 22 && value <= 43) { setColumnColour(sliderColourIds, yellow, offset, first, second, third, fourth); }
-    else if (value >= 44 && value <= 65) { setColumnColour(sliderColourIds, green, offset, first, second, third, fourth); }
-    else if (value >= 66 && value <= 87) { setColumnColour(sliderColourIds, blue , offset, first, second, third, fourth); }
-    else if (value >= 88 && value <= 109) { setColumnColour(sliderColourIds, purple, offset, first, second, third, fourth); }
+    //Set column colour based off of value (parent slider position)
+    if (value == 0) { setColumnColour(sliderColourIds, red, offset, first, second, third, fourth); }
+    else if (value == 1) { setColumnColour(sliderColourIds, yellow, offset, first, second, third, fourth); }
+    else if (value == 2) { setColumnColour(sliderColourIds, green, offset, first, second, third, fourth); }
+    else if (value == 3) { setColumnColour(sliderColourIds, blue , offset, first, second, third, fourth); }
+    else if (value == 4) { setColumnColour(sliderColourIds, purple, offset, first, second, third, fourth); }
     else { setColumnColour(sliderColourIds, getLookAndFeel().findColour(juce::Slider::ColourIds::backgroundColourId), offset, first, second, third, fourth); }
 
     

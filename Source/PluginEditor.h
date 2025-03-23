@@ -39,7 +39,8 @@ private:
     juce::TextButton updateButton;
     std::vector<std::unique_ptr<juce::Slider>> ccSliders;
     std::vector<std::unique_ptr<juce::Label>> ccLabels;
-    std::vector<int> sliderColourIds = { juce::Slider::thumbColourId, juce::Slider::trackColourId , juce::Slider::backgroundColourId };
+    std::vector<int> sliderColourIds = { juce::Slider::thumbColourId, juce::Slider::trackColourId , juce::Slider::backgroundColourId, juce::Slider::rotarySliderFillColourId };
+    //juce::LookAndFeel_V4 lnf;
 
 
     // Attachments

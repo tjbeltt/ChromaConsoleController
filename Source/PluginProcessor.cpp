@@ -11,10 +11,10 @@
 
 const std::vector<CCControllerConfig> ChromaConsoleControllerAudioProcessor::ccConfigurations = {
      // Modules
-    { 16, "cModule", "Character Module", 0}, // Character Module
-    { 17, "mModule", "Movement Module", 22}, // Movement Module
-    { 18, "dModule", "Diffusion Module", 44}, // Diffusion Module
-    { 19, "tModule", "Texture Module", 0}, // Texture Module
+    { 16, "cModule", "Character Module", 5}, // Character Module
+    { 17, "mModule", "Movement Module", 5}, // Movement Module
+    { 18, "dModule", "Diffusion Module", 5}, // Diffusion Module
+    { 19, "tModule", "Texture Module", 5}, // Texture Module
     
     // Primary Controls
     { 64,  "tilt",  "Tilt", 63},  // Tilt
@@ -99,38 +99,38 @@ juce::AudioProcessorValueTreeState::ParameterLayout ChromaConsoleControllerAudio
         "updateValues", "Update Values", false, updateAttribute));
 
     auto characterModuleAttribute = juce::AudioParameterIntAttributes().withStringFromValueFunction([](auto x, auto) {
-        if (x <= 21) { return juce::String("Drive"); }
-        else if (x >= 22 && x <= 43) { return juce::String("Sweeten"); }
-        else if (x >= 44 && x <= 65) { return juce::String("Fuzz"); }
-        else if (x >= 66 && x <= 87) { return juce::String("Howl"); }
-        else if (x >= 88 && x <= 109) { return juce::String("Swell"); }
+        if (x == 0) { return juce::String("Drive"); }
+        else if (x == 1) { return juce::String("Sweeten"); }
+        else if (x == 2) { return juce::String("Fuzz"); }
+        else if (x == 3) { return juce::String("Howl"); }
+        else if (x == 4) { return juce::String("Swell"); }
         else return juce::String("Off");
         });
 
     auto movementModuleAttribute = juce::AudioParameterIntAttributes().withStringFromValueFunction([](auto x, auto) {
-        if (x <= 21) { return juce::String("Doubler"); }
-        else if (x >= 22 && x <= 43) { return juce::String("Vibrato"); }
-        else if (x >= 44 && x <= 65) { return juce::String("Phaser"); }
-        else if (x >= 66 && x <= 87) { return juce::String("Tremolo"); }
-        else if (x >= 88 && x <= 109) { return juce::String("Pitch"); }
+        if (x == 0) { return juce::String("Doubler"); }
+        else if (x == 1) { return juce::String("Vibrato"); }
+        else if (x == 2) { return juce::String("Phaser"); }
+        else if (x == 3) { return juce::String("Tremolo"); }
+        else if (x == 4) { return juce::String("Pitch"); }
         else return juce::String("Off");
         });
 
     auto diffusionModuleAttribute = juce::AudioParameterIntAttributes().withStringFromValueFunction([](auto x, auto) {
-        if (x <= 21) { return juce::String("Cascade"); }
-        else if (x >= 22 && x <= 43) { return juce::String("Reels"); }
-        else if (x >= 44 && x <= 65) { return juce::String("Space"); }
-        else if (x >= 66 && x <= 87) { return juce::String("Collage"); }
-        else if (x >= 88 && x <= 109) { return juce::String("Reverse"); }
+        if (x == 0) { return juce::String("Cascade"); }
+        else if (x == 1) { return juce::String("Reels"); }
+        else if (x == 2) { return juce::String("Space"); }
+        else if (x == 3) { return juce::String("Collage"); }
+        else if (x == 4) { return juce::String("Reverse"); }
         else return juce::String("Off");
         });
 
     auto textureModuleAttribute = juce::AudioParameterIntAttributes().withStringFromValueFunction([](auto x, auto) {
-        if (x <= 21) { return juce::String("Filter"); }
-        else if (x >= 22 && x <= 43) { return juce::String("Squash"); }
-        else if (x >= 44 && x <= 65) { return juce::String("Cassette"); }
-        else if (x >= 66 && x <= 87) { return juce::String("Broken"); }
-        else if (x >= 88 && x <= 109) { return juce::String("Interference"); }
+        if (x == 0) { return juce::String("Filter"); }
+        else if (x == 1) { return juce::String("Squash"); }
+        else if (x == 2) { return juce::String("Cassette"); }
+        else if (x == 3) { return juce::String("Broken"); }
+        else if (x == 4) { return juce::String("Interference"); }
         else return juce::String("Off");
         });
 
@@ -190,22 +190,22 @@ juce::AudioProcessorValueTreeState::ParameterLayout ChromaConsoleControllerAudio
         if (config.parameterID == "cModule") {
             layout.add(std::make_unique<juce::AudioParameterInt>(
                 config.parameterID, config.name,
-                0, 127, static_cast<int>(config.defaultValue), characterModuleAttribute));
+                0, 5, static_cast<int>(config.defaultValue), characterModuleAttribute));
         } 
         else if (config.parameterID == "mModule") {
             layout.add(std::make_unique<juce::AudioParameterInt>(
                 config.parameterID, config.name,
-                0, 127, static_cast<int>(config.defaultValue), movementModuleAttribute));
+                0, 5, static_cast<int>(config.defaultValue), movementModuleAttribute));
         }
         else if (config.parameterID == "dModule") {
             layout.add(std::make_unique<juce::AudioParameterInt>(
                 config.parameterID, config.name,
-                0, 127, static_cast<int>(config.defaultValue), diffusionModuleAttribute));
+                0, 5, static_cast<int>(config.defaultValue), diffusionModuleAttribute));
         }
         else if (config.parameterID == "tModule") {
             layout.add(std::make_unique<juce::AudioParameterInt>(
                 config.parameterID, config.name,
-                0, 127, static_cast<int>(config.defaultValue), textureModuleAttribute));
+                0, 5, static_cast<int>(config.defaultValue), textureModuleAttribute));
         }
         else if (config.parameterID == "bypass1") {
             layout.add(std::make_unique<juce::AudioParameterInt>(
@@ -336,7 +336,14 @@ void ChromaConsoleControllerAudioProcessor::sendCurrentSliderValues()
     for (const auto& config : ccConfigurations) {
         {
             // Get the current value of the slider
-            const int currentValue = *parameters.getRawParameterValue(config.parameterID);
+            const int rawValue = *parameters.getRawParameterValue(config.parameterID);
+            int currentValue = rawValue;
+
+
+            // Map stepped CC sliders to proper output value for module effects
+            if (config.parameterID == "cModule" || config.parameterID == "mModule" || config.parameterID == "dModule" || config.parameterID == "tModule") {
+                currentValue = rawValue * 22;
+            }
             // Create a MIDI CC message
             juce::MidiMessage midiMessage = juce::MidiMessage::controllerEvent(getMidiChannel(), config.ccNumber, currentValue);
             sendMidiMessage(midiMessage); // Add the message to the queue
@@ -400,8 +407,14 @@ void ChromaConsoleControllerAudioProcessor::processBlock (juce::AudioBuffer<floa
     }
 
     for (const auto& config : ccConfigurations) {
-        const int currentValue = *parameters.getRawParameterValue(config.parameterID);
+        const int rawValue = *parameters.getRawParameterValue(config.parameterID);
+        int currentValue = rawValue;
         int& prevValue = previousCCValues[config.ccNumber];
+
+        // Map stepped CC values to real cc values for Module FX
+        if (config.parameterID == "cModule" || config.parameterID == "mModule" || config.parameterID == "dModule" || config.parameterID == "tModule") {
+            currentValue = rawValue * 22;
+        }
 
         if (currentValue != prevValue) {
             midiMessages.addEvent(juce::MidiMessage::controllerEvent(
