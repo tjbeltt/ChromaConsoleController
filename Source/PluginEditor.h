@@ -28,6 +28,7 @@ public:
     void runColumnOVC(int column, bool first, bool second, bool third, bool fourth);
     void setColumnProperties(int column, int value, bool first, bool second, bool third, bool fourth);
     void setColumnEnabled(int column, bool enabled, bool first, bool second, bool third, bool fourth);
+
     void setColumnColour(int colourID, juce::Colour colour, int column, bool first, bool second, bool third, bool fourth);
     void setColumnColour(std::vector<int> colourIds, juce::Colour colour, int column, bool first, bool second, bool third, bool fourth);
 

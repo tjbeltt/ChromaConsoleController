@@ -79,7 +79,7 @@ void ChromaConsoleControllerAudioProcessorEditor::setColumnProperties(int offset
     juce::Colour purple = juce::Colour(95, 49, 160);
 
     // Check if sliders in column should be enabled or disabled
-    if (value >= 110) { // If Slider is at max value
+    if (value == 5) { // If Slider is at max value
         setColumnEnabled(offset, false, first, second, third, fourth);
     }
     else {
