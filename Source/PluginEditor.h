@@ -43,6 +43,7 @@ private:
     std::vector<int> sliderColourIds = { juce::Slider::thumbColourId, juce::Slider::trackColourId , juce::Slider::backgroundColourId, juce::Slider::rotarySliderFillColourId };
     //juce::LookAndFeel_V4 lnf;
 
+    juce::Label versionNumber;
 
     // Attachments
     juce::AudioProcessorValueTreeState::ComboBoxAttachment channelAttachment;

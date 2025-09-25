@@ -72,6 +72,7 @@ ChromaConsoleControllerAudioProcessor::ChromaConsoleControllerAudioProcessor()
                      #endif
                        ), parameters(*this, nullptr, "PARAMETERS", createParameterLayout())
 #endif
+    : AudioProcessor (BusesProperties()), parameters(*this, nullptr, "PARAMETERS", createParameterLayout())
 {
     // Initialize previous values (?)
     for (const auto& config : ccConfigurations) {
@@ -360,6 +361,7 @@ void ChromaConsoleControllerAudioProcessor::releaseResources()
 {
 
 }
+
 
 #ifndef JucePlugin_PreferredChannelConfigurations
 bool ChromaConsoleControllerAudioProcessor::isBusesLayoutSupported (const BusesLayout& layouts) const

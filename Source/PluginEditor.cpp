@@ -31,6 +31,10 @@ ChromaConsoleControllerAudioProcessorEditor::ChromaConsoleControllerAudioProcess
     updateButton.setButtonText("Update All Values");
     updateButton.onClick = [this]() { audioProcessor.sendCurrentSliderValues(); };
 
+    versionNumber.setText(JucePlugin_VersionString, juce::dontSendNotification);
+    versionNumber.setJustificationType(juce::Justification::centred);
+    addAndMakeVisible(versionNumber);
+
     // Create CC controls
     const auto& configs = ChromaConsoleControllerAudioProcessor::ccConfigurations;
     for (const auto& config : configs) {
@@ -200,6 +204,10 @@ void ChromaConsoleControllerAudioProcessorEditor::resized()
     auto topArea = area.removeFromTop(25);
     channelSelector.setBounds(topArea.removeFromRight(150));
     updateButton.setBounds(topArea.removeFromLeft(150));
+    
+    // Currently using the remaining area of the top header as the version number. 
+    // If I need to add anything in the future, I will lower the space this section takes
+    versionNumber.setBounds(topArea); 
 
     // Calculate number of rows and columns for the grid
     const int numColumns = 4; // You can adjust this based on your layout needs
