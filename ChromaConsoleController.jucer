@@ -10,7 +10,10 @@
               pluginVST3Category="External" pluginChannelConfigs="{1,1}, {2,2}">
   <MAINGROUP id="ihV1F5" name="Chroma Console Controller">
     <GROUP id="{7944C026-5879-F573-7109-4C7608DE8CB1}" name="Source">
-      <FILE id="wwPbwj" name="ChildSlider.h" compile="0" resource="0" file="Source/ChildSlider.h"/>
+      <FILE id="gC8yOC" name="CCSliderModule.cpp" compile="1" resource="0"
+            file="Source/CCSliderModule.cpp"/>
+      <FILE id="ZwYwss" name="CCSliderModule.h" compile="0" resource="0"
+            file="Source/CCSliderModule.h"/>
       <FILE id="H7J6rb" name="PluginProcessor.cpp" compile="1" resource="0"
             file="Source/PluginProcessor.cpp"/>
       <FILE id="QOoj7p" name="PluginProcessor.h" compile="0" resource="0"
