@@ -38,7 +38,7 @@ private:
 
     // Layout properties
     static constexpr int numColumns = 4;
-    static constexpr int headerHeight = 30;
+    static constexpr int headerHeight = 25;
     static constexpr int padding = 10;
 
     // Color definitions

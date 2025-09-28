@@ -51,7 +51,7 @@ ChromaConsoleControllerAudioProcessorEditor::ChromaConsoleControllerAudioProcess
     // Set initial size (now more flexible)
     setResizable(true, true);
     setConstrainer(&constrainer);
-    constrainer.setSizeLimits(600, 400, 1920, 1080);
+    constrainer.setSizeLimits(600, 700, 1920, 1080);
     setSize(600, 900);
 
     // Initialize column properties
