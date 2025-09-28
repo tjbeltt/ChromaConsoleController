@@ -18,7 +18,7 @@ CCSliderModule::CCSliderModule(ChromaConsoleControllerAudioProcessor& processor,
 {
     // Configure slider
     slider.setSliderStyle(juce::Slider::RotaryHorizontalVerticalDrag);
-    slider.setTextBoxStyle(juce::Slider::TextBoxBelow, false, 50, 15);
+    slider.setTextBoxStyle(juce::Slider::TextBoxBelow, false, 70, 15);
     slider.setRange(0, 127, 1);
     addAndMakeVisible(slider);
 
