@@ -3,7 +3,7 @@
 <JUCERPROJECT id="QKnDfl" name="Chroma Console Controller" projectType="audioplug"
               useAppConfig="0" addUsingNamespaceToJuceHeader="0" jucerFormatVersion="1"
               pluginCharacteristicsValue="pluginProducesMidiOut,pluginWantsMidiIn"
-              version="0.35" companyName="Cove" companyWebsite="https://www.covedsp.com/"
+              version="0.36" companyName="Cove" companyWebsite="https://www.covedsp.com/"
               pluginFormats="buildVST3" pluginName="Chroma Console Controller"
               pluginDesc="A midi controller for the Hologram Electronics Chroma Console"
               pluginManufacturer="Cove" pluginAUMainType="'aumi'" pluginVSTCategory="kPlugCategUnknown"

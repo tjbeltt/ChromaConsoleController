@@ -37,6 +37,11 @@ ChromaConsoleControllerAudioProcessorEditor::ChromaConsoleControllerAudioProcess
     updateButton.setButtonText("Update All Values");
     updateButton.onClick = [this]() { audioProcessor.sendCurrentSliderValues(); };
 
+    // Setup advanced settings button
+    addAndMakeVisible(advancedButton);
+    advancedButton.setButtonText("Advanced Settings");
+    advancedButton.onClick = [this]() { toggleAdvancedSettings(); };
+
     // Setup version label
     versionNumber.setText(JucePlugin_VersionString, juce::dontSendNotification);
     versionNumber.setJustificationType(juce::Justification::centred);
@@ -117,16 +122,21 @@ void ChromaConsoleControllerAudioProcessorEditor::resized()
     updateButton.setBounds(headerArea.removeFromLeft(150));
     versionNumber.setBounds(headerArea);
 
+    // Footer area for advanced button
+    auto footerArea = area.removeFromBottom(footerHeight);
+    advancedButton.setBounds(footerArea.withSizeKeepingCentre(150, 25));
+
     // Calculate grid layout
-    const int numRows = calculateNumRows();
-    if (numRows == 0) return;
+    const int visibleRows = calculateVisibleRows();
+    if (visibleRows == 0) return;
 
     auto gridArea = area;
     const int cellWidth = gridArea.getWidth() / numColumns;
-    const int cellHeight = gridArea.getHeight() / numRows;
+    const int cellHeight = gridArea.getHeight() / visibleRows;
 
-    // Position modules in grid
-    for (size_t i = 0; i < ccModules.size(); ++i) {
+    // Position modules in grid - only show visible ones
+    int visibleModuleCount = visibleRows * numColumns;
+    for (int i = 0; i < std::min(visibleModuleCount, (int)ccModules.size()); ++i) {
         const int row = i / numColumns;
         const int col = i % numColumns;
 
@@ -137,6 +147,62 @@ void ChromaConsoleControllerAudioProcessorEditor::resized()
         const int modulePadding = 5;
         ccModules[i]->setBounds(xPos + modulePadding, yPos + modulePadding,
             cellWidth - 2 * modulePadding, cellHeight - 2 * modulePadding);
+        ccModules[i]->setVisible(true);
+    }
+
+    // Hide modules that should not be visible
+    for (int i = visibleModuleCount; i < ccModules.size(); ++i) {
+        ccModules[i]->setVisible(showAdvancedSettings);
+    }
+}
+
+int ChromaConsoleControllerAudioProcessorEditor::calculateVisibleRows() const
+{
+    if (ccModules.empty()) return 0;
+
+    if (showAdvancedSettings) {
+        // Show all rows when advanced settings are visible
+        return calculateNumRows();
+    }
+    else {
+        // Show only basic rows (first 3 rows)
+        return std::min(basicRows, calculateNumRows());
+    }
+}
+
+int ChromaConsoleControllerAudioProcessorEditor::calculateIdealHeight() const
+{
+    const int visibleRows = calculateVisibleRows();
+    const int cellHeight = 120; // Approximate height per cell
+
+    int idealHeight = headerHeight + footerHeight + (visibleRows * cellHeight) + (2 * padding);
+
+    // Ensure we don't go below the minimum height restriction
+    idealHeight = std::max(idealHeight, 700);
+
+    return idealHeight;
+}
+
+void ChromaConsoleControllerAudioProcessorEditor::toggleAdvancedSettings()
+{
+    showAdvancedSettings = !showAdvancedSettings;
+
+    // Update button text
+    advancedButton.setButtonText(showAdvancedSettings ? "Hide Advanced" : "Advanced Settings");
+
+    // Calculate new ideal height
+    int newHeight = calculateIdealHeight();
+
+    // Animate the resize
+    juce::ComponentAnimator& animator = juce::Desktop::getInstance().getAnimator();
+    animator.animateComponent(this,
+        getBounds().withHeight(newHeight),
+        1.0f, 200, false, 1.0, 0.0);
+
+    // Update visibility of advanced modules immediately for smooth animation
+    int visibleModuleCount = calculateVisibleRows() * numColumns;
+    for (int i = visibleModuleCount; i < ccModules.size(); ++i) {
+        ccModules[i]->setVisible(showAdvancedSettings);
     }
 }
 

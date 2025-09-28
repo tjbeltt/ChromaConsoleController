@@ -28,6 +28,7 @@ private:
     // UI Components
     juce::ComboBox channelSelector;
     juce::TextButton updateButton;
+    juce::TextButton advancedButton;
     juce::Label versionNumber;
     juce::ComponentBoundsConstrainer constrainer;
     
@@ -39,7 +40,10 @@ private:
     // Layout properties
     static constexpr int numColumns = 4;
     static constexpr int headerHeight = 25;
+    static constexpr int footerHeight = 25;
     static constexpr int padding = 10;
+    static constexpr int basicRows = 5;
+    bool showAdvancedSettings = false;
 
     // Color definitions
     struct Colors {
@@ -64,6 +68,7 @@ private:
     // Module management
     void createCCModules();
     void setupColumnInteractions();
+    void toggleAdvancedSettings();
 
     // Column control methods (refactored for modules)
     void setColumnProperties(int column, int value, bool first, bool second, bool third, bool fourth);
@@ -72,6 +77,8 @@ private:
 
     // Helper methods
     int calculateNumRows() const;
+    int calculateVisibleRows() const;
+    int calculateIdealHeight() const;
     juce::Rectangle<int> getGridArea() const;
     juce::Colour getColourForValue(int value) const;
     
