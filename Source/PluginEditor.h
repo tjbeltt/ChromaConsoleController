@@ -43,7 +43,6 @@ private:
     static constexpr int footerHeight = 25;
     static constexpr int padding = 10;
     static constexpr int basicRows = 5;
-    bool showAdvancedSettings = false;
 
     // Color definitions
     struct Colors {
@@ -81,6 +80,8 @@ private:
     int calculateIdealHeight() const;
     juce::Rectangle<int> getGridArea() const;
     juce::Colour getColourForValue(int value) const;
+    bool getShowAdvancedSettings() const;
+    void setShowAdvancedSettings(bool show);
     
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(ChromaConsoleControllerAudioProcessorEditor)

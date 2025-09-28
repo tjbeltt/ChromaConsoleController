@@ -44,8 +44,8 @@ CCSliderModule::~CCSliderModule()
 void CCSliderModule::paint(juce::Graphics& g)
 {
     // Optional: Add background or border for debugging
-    g.setColour(juce::Colours::darkgrey);
-    g.drawRect(getLocalBounds(), 1);
+    //g.setColour(juce::Colours::darkgrey);
+    //g.drawRect(getLocalBounds(), 1);
 }
 
 void CCSliderModule::resized()

@@ -39,7 +39,7 @@ ChromaConsoleControllerAudioProcessorEditor::ChromaConsoleControllerAudioProcess
 
     // Setup advanced settings button
     addAndMakeVisible(advancedButton);
-    advancedButton.setButtonText("Advanced Settings");
+    advancedButton.setButtonText(getShowAdvancedSettings() ? "Hide Advanced" : "Advanced Settings");
     advancedButton.onClick = [this]() { toggleAdvancedSettings(); };
 
     // Setup version label
@@ -57,7 +57,10 @@ ChromaConsoleControllerAudioProcessorEditor::ChromaConsoleControllerAudioProcess
     setResizable(true, true);
     setConstrainer(&constrainer);
     constrainer.setSizeLimits(600, 700, 1920, 1080);
-    setSize(600, 900);
+    
+    // Calculate initial height for basic view
+    int initialHeight = calculateIdealHeight();
+    setSize(600, initialHeight);
 
     // Initialize column properties
     if (!ccModules.empty()) {
@@ -152,7 +155,7 @@ void ChromaConsoleControllerAudioProcessorEditor::resized()
 
     // Hide modules that should not be visible
     for (int i = visibleModuleCount; i < ccModules.size(); ++i) {
-        ccModules[i]->setVisible(showAdvancedSettings);
+        ccModules[i]->setVisible(getShowAdvancedSettings());
     }
 }
 
@@ -160,7 +163,7 @@ int ChromaConsoleControllerAudioProcessorEditor::calculateVisibleRows() const
 {
     if (ccModules.empty()) return 0;
 
-    if (showAdvancedSettings) {
+    if (getShowAdvancedSettings()) {
         // Show all rows when advanced settings are visible
         return calculateNumRows();
     }
@@ -178,17 +181,19 @@ int ChromaConsoleControllerAudioProcessorEditor::calculateIdealHeight() const
     int idealHeight = headerHeight + footerHeight + (visibleRows * cellHeight) + (2 * padding);
 
     // Ensure we don't go below the minimum height restriction
-    idealHeight = std::max(idealHeight, 700);
-
+    idealHeight = std::max(idealHeight, constrainer.getMinimumHeight());
+    
     return idealHeight;
 }
 
 void ChromaConsoleControllerAudioProcessorEditor::toggleAdvancedSettings()
 {
-    showAdvancedSettings = !showAdvancedSettings;
+    bool currentState = getShowAdvancedSettings();
+    bool newState = !currentState;
+    setShowAdvancedSettings(newState);
 
     // Update button text
-    advancedButton.setButtonText(showAdvancedSettings ? "Hide Advanced" : "Advanced Settings");
+    advancedButton.setButtonText(newState ? "Hide Advanced" : "Advanced Settings");
 
     // Calculate new ideal height
     int newHeight = calculateIdealHeight();
@@ -202,7 +207,7 @@ void ChromaConsoleControllerAudioProcessorEditor::toggleAdvancedSettings()
     // Update visibility of advanced modules immediately for smooth animation
     int visibleModuleCount = calculateVisibleRows() * numColumns;
     for (int i = visibleModuleCount; i < ccModules.size(); ++i) {
-        ccModules[i]->setVisible(showAdvancedSettings);
+        ccModules[i]->setVisible(newState);
     }
 }
 
@@ -277,4 +282,17 @@ juce::Colour ChromaConsoleControllerAudioProcessorEditor::getColourForValue(int 
     case 4: return Colors::purple;
     default: return getLookAndFeel().findColour(juce::Slider::ColourIds::backgroundColourId);
     }
+}
+
+bool ChromaConsoleControllerAudioProcessorEditor::getShowAdvancedSettings() const
+{
+    // Get the property from the processor's parameter state
+    auto* property = audioProcessor.parameters.state.getPropertyPointer("showAdvancedSettings");
+    return property != nullptr ? (bool)*property : false;
+}
+
+void ChromaConsoleControllerAudioProcessorEditor::setShowAdvancedSettings(bool show)
+{
+    // Store the property in the processor's parameter state
+    audioProcessor.parameters.state.setProperty("showAdvancedSettings", show, nullptr);
 }
