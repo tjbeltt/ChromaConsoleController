@@ -16,6 +16,18 @@ const juce::Colour ChromaConsoleControllerAudioProcessorEditor::Colors::yellow(2
 const juce::Colour ChromaConsoleControllerAudioProcessorEditor::Colors::green(85, 194, 84);
 const juce::Colour ChromaConsoleControllerAudioProcessorEditor::Colors::blue(105, 210, 228);
 const juce::Colour ChromaConsoleControllerAudioProcessorEditor::Colors::purple(95, 49, 160);
+const juce::Colour ChromaConsoleControllerAudioProcessorEditor::Colors::bg_dark(juce::Colour::fromHSL((         40.0f / 360.0f), 0.10f, .06f, 1.0f));
+const juce::Colour ChromaConsoleControllerAudioProcessorEditor::Colors::bg(juce::Colour::fromHSL((              48.0f / 360.0f), 0.06f, .15f, 1.0f));
+const juce::Colour ChromaConsoleControllerAudioProcessorEditor::Colors::bg_light(juce::Colour::fromHSL((        48.0f / 360.0f), 0.06f, .19f, 1.0f));
+const juce::Colour ChromaConsoleControllerAudioProcessorEditor::Colors::text(juce::Colour::fromHSL((            26.0f / 360.0f), 0.08f, .82f, 1.0f));
+const juce::Colour ChromaConsoleControllerAudioProcessorEditor::Colors::text_muted(juce::Colour::fromHSL((      34.0f / 360.0f), 0.03f, .42f, 1.0f));
+const juce::Colour ChromaConsoleControllerAudioProcessorEditor::Colors::highlight(juce::Colour::fromHSL((       38.0f / 360.0f), 0.03f, .47f, 1.0f));
+const juce::Colour ChromaConsoleControllerAudioProcessorEditor::Colors::border(juce::Colour::fromHSL((          26.0f / 360.0f), 0.04f, .63f, 1.0f));
+const juce::Colour ChromaConsoleControllerAudioProcessorEditor::Colors::border_muted(juce::Colour::fromHSL((    60.0f / 360.0f), 0.02f, .34f, 1.0f));
+const juce::Colour ChromaConsoleControllerAudioProcessorEditor::Colors::primary(juce::Colour::fromHSL((         03.0f / 360.0f), 0.46f, .50f, 1.0f));
+const juce::Colour ChromaConsoleControllerAudioProcessorEditor::Colors::secondary(juce::Colour::fromHSL((      192.0f / 360.0f), 0.99f, .58f, 1.0f));
+
+
 
 ChromaConsoleControllerAudioProcessorEditor::ChromaConsoleControllerAudioProcessorEditor(
     ChromaConsoleControllerAudioProcessor& p)
@@ -24,6 +36,8 @@ ChromaConsoleControllerAudioProcessorEditor::ChromaConsoleControllerAudioProcess
     channelAttachment(p.parameters, "midiChannel", channelSelector),
     updateAttachment(p.parameters, "updateValues", updateButton)
 {
+    setLookAndFeel(&lnf);
+
     // Setup channel selector
     addAndMakeVisible(channelSelector);
     juce::StringArray channels;
@@ -45,6 +59,7 @@ ChromaConsoleControllerAudioProcessorEditor::ChromaConsoleControllerAudioProcess
     // Setup version label
     versionNumber.setText(JucePlugin_VersionString, juce::dontSendNotification);
     versionNumber.setJustificationType(juce::Justification::centred);
+    versionNumber.setColour(juce::Label::outlineColourId, juce::Colour(0.f, 0.f, 0.f, 0.f));
     addAndMakeVisible(versionNumber);
 
     // Create CC modules
@@ -53,7 +68,7 @@ ChromaConsoleControllerAudioProcessorEditor::ChromaConsoleControllerAudioProcess
     // Setup column interactions
     setupColumnInteractions();
 
-    // Set initial size (now more flexible)
+    // Set initial size
     setResizable(true, true);
     setConstrainer(&constrainer);
     constrainer.setSizeLimits(600, 700, 1920, 1080);
@@ -67,14 +82,53 @@ ChromaConsoleControllerAudioProcessorEditor::ChromaConsoleControllerAudioProcess
         setColumnProperties(0, ccModules[0]->getSlider().getValue(), true, true, true, true);
         setColumnProperties(1, ccModules[1]->getSlider().getValue(), true, true, true, true);
         setColumnProperties(2, ccModules[2]->getSlider().getValue(), true, true, true, true);
-        if (ccModules.size() > 3) {
-            setColumnProperties(3, ccModules[3]->getSlider().getValue(), true, true, false, false);
-        }
+        setColumnProperties(3, ccModules[3]->getSlider().getValue(), true, true, false, false);
     }
+
+    setLAF();
 }
 
 ChromaConsoleControllerAudioProcessorEditor::~ChromaConsoleControllerAudioProcessorEditor()
 {
+    setLookAndFeel(nullptr);
+}
+
+void ChromaConsoleControllerAudioProcessorEditor::setLAF()
+{
+    auto& laf = getLookAndFeel();
+
+    //BG
+    laf.setColour(juce::ResizableWindow::backgroundColourId, Colors::bg);
+
+    //Text Button
+    laf.setColour(juce::TextButton::ColourIds::buttonColourId, Colors::bg_light);
+    laf.setColour(juce::TextButton::ColourIds::buttonOnColourId, Colors::bg_light.brighter(.2f));
+    laf.setColour(juce::TextButton::ColourIds::textColourOnId, Colors::text);
+    laf.setColour(juce::TextButton::ColourIds::textColourOffId, Colors::text_muted);
+
+    //Popup Menu
+    laf.setColour(juce::PopupMenu::ColourIds::textColourId, Colors::text_muted);
+    laf.setColour(juce::PopupMenu::ColourIds::headerTextColourId, Colors::text);
+    laf.setColour(juce::PopupMenu::ColourIds::backgroundColourId, Colors::bg_dark);
+    laf.setColour(juce::PopupMenu::ColourIds::highlightedTextColourId, Colors::text.brighter(.2f));
+    laf.setColour(juce::PopupMenu::ColourIds::highlightedBackgroundColourId, Colors::bg_light);
+
+    //Label
+    laf.setColour(juce::Label::textColourId, Colors::text);
+    laf.setColour(juce::Label::outlineColourId, Colors::border_muted);
+
+    //Slider
+    laf.setColour(juce::Slider::ColourIds::rotarySliderFillColourId, Colors::text);
+    laf.setColour(juce::Slider::ColourIds::rotarySliderOutlineColourId, juce::Colour(0.0f, 0.0f, 0.0f, 0.0f));
+    laf.setColour(juce::Slider::ColourIds::textBoxBackgroundColourId, Colors::bg_light);
+    laf.setColour(juce::Slider::ColourIds::textBoxTextColourId, Colors::text_muted);
+    laf.setColour(juce::Slider::ColourIds::textBoxHighlightColourId, Colors::highlight);
+    laf.setColour(juce::Slider::ColourIds::textBoxOutlineColourId, Colors::border_muted);
+    laf.setColour(juce::Slider::ColourIds::thumbColourId, Colors::bg_light);
+    laf.setColour(CoveLNF::CoveRotarySlider::thumbEnabledID, Colors::text);
+    laf.setColour(CoveLNF::CoveRotarySlider::thumbDisabledID, Colors::text_muted);
+    laf.setColour(CoveLNF::CoveRotarySlider::backgroundArcID, Colors::bg_dark);
+    
 }
 
 void ChromaConsoleControllerAudioProcessorEditor::createCCModules()
@@ -113,12 +167,13 @@ void ChromaConsoleControllerAudioProcessorEditor::setupColumnInteractions()
 void ChromaConsoleControllerAudioProcessorEditor::paint(juce::Graphics& g)
 {
     g.fillAll(getLookAndFeel().findColour(juce::ResizableWindow::backgroundColourId));
+    setLAF();
 }
 
 void ChromaConsoleControllerAudioProcessorEditor::resized()
 {
     auto area = getLocalBounds().reduced(padding);
-
+    
     // Header area
     auto headerArea = area.removeFromTop(headerHeight);
     channelSelector.setBounds(headerArea.removeFromRight(150));
@@ -221,7 +276,7 @@ void ChromaConsoleControllerAudioProcessorEditor::setColumnProperties(int column
     bool first, bool second, bool third, bool fourth)
 {
     // Enable/disable column
-    bool enabled = (value != 5);
+    bool enabled = (value < 5);
     setColumnEnabled(column, enabled, first, second, third, fourth);
 
     // Set column color
@@ -280,7 +335,7 @@ juce::Colour ChromaConsoleControllerAudioProcessorEditor::getColourForValue(int 
     case 2: return Colors::green;
     case 3: return Colors::blue;
     case 4: return Colors::purple;
-    default: return getLookAndFeel().findColour(juce::Slider::ColourIds::backgroundColourId);
+    default: return getLookAndFeel().findColour(CoveLNF::CoveRotarySlider::backgroundArcID);
     }
 }
 
