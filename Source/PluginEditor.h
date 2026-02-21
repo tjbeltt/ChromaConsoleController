@@ -13,6 +13,7 @@
 #include "PluginProcessor.h"
 #include "CCSliderModule.h"
 #include "CoveLNF.h"
+#include "melatonin_inspector/melatonin_inspector.h"
 
 class ChromaConsoleControllerAudioProcessorEditor : public juce::AudioProcessorEditor
 {
@@ -95,6 +96,8 @@ private:
     juce::Colour getColourForValue(int value) const;
     bool getShowAdvancedSettings() const;
     void setShowAdvancedSettings(bool show);
+
+    melatonin::Inspector inspector{ *this, false };
     
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(ChromaConsoleControllerAudioProcessorEditor)
