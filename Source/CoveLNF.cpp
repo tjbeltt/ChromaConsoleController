@@ -10,6 +10,16 @@
 
 #include "CoveLNF.h"
 
+struct DebugLabel : public juce::Label
+{
+    void colourChanged() override
+    {
+        DBG("DebugLabel::colourChanged called");
+        juce::Logger::writeToLog(juce::SystemStats::getStackBacktrace());
+        juce::Label::colourChanged();
+    }
+};
+
 void CoveLNF::drawRotarySlider(juce::Graphics& g, int x, int y, int width, int height, float sliderPos,
     const float rotaryStartAngle, const float rotaryEndAngle, juce::Slider& slider)
 {
@@ -68,4 +78,19 @@ void CoveLNF::drawRotarySlider(juce::Graphics& g, int x, int y, int width, int h
         g.fillEllipse(juce::Rectangle<float>(thumbWidth, thumbWidth).withCentre(thumbPoint));
     }
     
+}
+
+juce::Label* CoveLNF::createSliderTextBox(juce::Slider& slider)
+{
+    auto* l = LookAndFeel_V4::createSliderTextBox(slider);
+    //auto* l = new DebugLabel();
+
+    l->setColour(juce::Label::textColourId,
+        slider.findColour(juce::Slider::textBoxTextColourId));
+    l->setColour(juce::Label::backgroundColourId,
+        slider.findColour(juce::Slider::textBoxBackgroundColourId));
+    l->setColour(juce::Label::outlineColourId,
+        slider.findColour(juce::Slider::textBoxOutlineColourId));
+
+    return l;
 }

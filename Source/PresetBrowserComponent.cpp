@@ -32,7 +32,7 @@ PresetBrowserComponent::PresetBrowserComponent(PresetManager& pm)
     // Set up preset list
     presetListBox.setModel(listBoxModel.get());
     presetListBox.setRowHeight(30);
-    presetListBox.setColour(juce::ListBox::backgroundColourId, juce::Colour(0xff1a1a1a));
+    presetListBox.setColour(juce::ListBox::backgroundColourId, juce::Colour::fromHSL((0.0f), 0.00f, .04f, 1.0f));
     addAndMakeVisible(presetListBox);
 
     // Set up navigation buttons
@@ -60,7 +60,7 @@ PresetBrowserComponent::PresetBrowserComponent(PresetManager& pm)
     // Setup current preset label
     currentPresetLabel.setText("No Preset Loaded", juce::dontSendNotification);
     currentPresetLabel.setJustificationType(juce::Justification::centred);
-    currentPresetLabel.setFont(juce::Font(16.0f, juce::Font::bold));
+    currentPresetLabel.setFont(juce::Font(13.0f));
     addAndMakeVisible(currentPresetLabel);
 
     // Register as listener
@@ -81,9 +81,9 @@ PresetBrowserComponent::~PresetBrowserComponent()
 
 void PresetBrowserComponent::paint(juce::Graphics& g)
 {
-    g.fillAll(juce::Colour(0xff202020));
+    g.fillAll(juce::Colour::fromHSL((0.0f), 0.00f, .15f, 1.0f));
 
-    g.setColour(juce::Colours::white);
+    g.setColour(getLookAndFeel().findColour(juce::Label::textColourId));
     g.setFont(18.0f);
     g.drawText("Preset Browser", getLocalBounds().removeFromTop(40), juce::Justification::centred);
 }
@@ -136,6 +136,8 @@ void PresetBrowserComponent::presetLoaded(const PresetManager::Preset& preset)
 void PresetBrowserComponent::presetSaved(const PresetManager::Preset& preset)
 {
     updatePresetList();
+    // Reset category filter to show all presets
+    categorySelector.setSelectedId(1, juce::sendNotification);
 }
 
 void PresetBrowserComponent::presetListChanged()
@@ -156,19 +158,26 @@ void PresetBrowserComponent::currentPresetChanged()
     if (currentPreset)
     {
         currentPresetLabel.setText(currentPreset->name + " (" + currentPreset->category + ")", juce::dontSendNotification);
-    }
 
-    // Update selection in list
-    int currentIndex = presetManager.getCurrentPresetIndex();
-    auto& filtered = listBoxModel->getFilteredPresets();
+        // Reset category filter to show all presets
+        categorySelector.setSelectedId(1, juce::sendNotification);
 
-    for (int i = 0; i < filtered.size(); i++)
-    {
-        if (filtered[i].file == currentPreset->file)
+        // Update selection in the list - runs after updatePresetList via onChange
+        auto& filtered = listBoxModel->getFilteredPresets();
+        for (int i = 0; i < filtered.size(); i++)
         {
-            presetListBox.selectRow(i);
-            break;
+            if (filtered[i].file == currentPreset->file)
+            {
+                presetListBox.selectRow(i);
+                break;
+            }
         }
+    }
+    else
+    {
+        // No preset loaded - reset to default state
+        currentPresetLabel.setText("No Preset Loaded", juce::dontSendNotification);
+        presetListBox.deselectAllRows();
     }
 }
 
@@ -205,7 +214,18 @@ void PresetBrowserComponent::showSavePresetDialog()
     auto* window = new juce::AlertWindow("Save Preset", "Enter Preset Name:", juce::AlertWindow::NoIcon);
 
     window->addTextEditor("presetName", "", "Preset Name:");
-    window->addComboBox("category", presetManager.getCategories(), "Category:");
+    window->addTextEditor("category", "", "Category:");
+
+    // Populate a hint below the category field showing existing categories
+    auto categories = presetManager.getCategories();
+    juce::String categoryHint = "Existing: ";
+    if (categories.isEmpty())
+        categoryHint += "none";
+    else
+        categoryHint += categories.joinIntoString(", ");
+
+    window->addTextBlock(categoryHint);
+
     window->addButton("Save", 1, juce::KeyPress(juce::KeyPress::returnKey));
     window->addButton("Cancel", 0, juce::KeyPress(juce::KeyPress::escapeKey));
 
@@ -214,13 +234,18 @@ void PresetBrowserComponent::showSavePresetDialog()
             if (result == 1)
             {
                 auto presetName = window->getTextEditorContents("presetName");
-                auto categoryBox = window->getComboBoxComponent("category");
-                auto category = categoryBox ? categoryBox->getText() : "User";
+                auto category = window->getTextEditorContents("category");
+
+                if (category.isEmpty())
+                    category = "User"; // Sensible default
 
                 if (presetName.isNotEmpty())
                 {
                     presetManager.savePreset(presetName, category);
                 }
+
+                // Reset category filter to show all presets
+                categorySelector.setSelectedId(1, juce::sendNotification);
             }
         }), true);
 }
@@ -231,20 +256,29 @@ void PresetBrowserComponent::showDeletePresetDialog()
     if (!currentPreset)
         return;
 
-    auto result = juce::AlertWindow::showOkCancelBox(
-        juce::AlertWindow::WarningIcon,
+    // Copy the file before any modal dialog, since the pointer
+    // into the presets array can be invalidated during the blocking call
+    juce::File fileToDelete = currentPreset->file;
+
+    auto* window = new juce::AlertWindow(
         "Delete Preset",
-        "Are you sure you want to delete '" + currentPreset->name + "'?",
-        "Delete",
-        "Cancel",
-        nullptr,
-        nullptr
+        "Are you sure you want to delete '" + fileToDelete.getFileNameWithoutExtension() + "'?",
+        juce::AlertWindow::WarningIcon
     );
 
-    if (result)
-    {
-        presetManager.deletePreset(currentPreset->file);
-    }
+    window->addButton("Delete", 1, juce::KeyPress(juce::KeyPress::returnKey));
+    window->addButton("Cancel", 0, juce::KeyPress(juce::KeyPress::escapeKey));
+
+    window->enterModalState(true, juce::ModalCallbackFunction::create([this, fileToDelete](int result)
+        {
+            if (result == 1)
+            {
+                presetManager.deletePreset(fileToDelete);
+
+                // Reset category filter to show all presets
+                categorySelector.setSelectedId(1, juce::sendNotification);
+            }
+        }), true);
 }
 
 void PresetBrowserComponent::showMidiMappingDialog()

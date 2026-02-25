@@ -62,17 +62,12 @@ const std::vector<CCControllerConfig> ChromaConsoleControllerAudioProcessor::ccC
 
 //==============================================================================
 ChromaConsoleControllerAudioProcessor::ChromaConsoleControllerAudioProcessor()
-#ifndef JucePlugin_PreferredChannelConfigurations
-     : AudioProcessor (BusesProperties()
-                     #if ! JucePlugin_IsMidiEffect
-                      #if ! JucePlugin_IsSynth
-                       .withInput  ("Input",  juce::AudioChannelSet::stereo(), true)
-                      #endif
-                       .withOutput ("Output", juce::AudioChannelSet::stereo(), true)
-                     #endif
-                       ), parameters(*this, nullptr, "PARAMETERS", createParameterLayout())
-#endif
-    : AudioProcessor (BusesProperties()), parameters(*this, nullptr, "PARAMETERS", createParameterLayout())
+    : AudioProcessor (BusesProperties()
+    .withOutput("Output", juce::AudioChannelSet::stereo(), true)
+        .withInput("Input", juce::AudioChannelSet::stereo(), true)),
+    parameters(*this, nullptr, "PARAMETERS", createParameterLayout()),
+    presetManager(*this),
+    presetMidiHandler(presetManager)
 {
     // Initialize previous values (?)
     for (const auto& config : ccConfigurations) {
@@ -272,29 +267,38 @@ const juce::String ChromaConsoleControllerAudioProcessor::getName() const
 
 bool ChromaConsoleControllerAudioProcessor::acceptsMidi() const
 {
+    /*
    #if JucePlugin_WantsMidiInput
     return true;
    #else
     return false;
    #endif
+   */
+    return true;
 }
 
 bool ChromaConsoleControllerAudioProcessor::producesMidi() const
 {
+    /*
    #if JucePlugin_ProducesMidiOutput
     return true;
    #else
     return false;
    #endif
+   */
+    return true;
 }
 
 bool ChromaConsoleControllerAudioProcessor::isMidiEffect() const
 {
+    /*
    #if JucePlugin_IsMidiEffect
     return true;
    #else
     return false;
    #endif
+   */
+    return true;
 }
 
 double ChromaConsoleControllerAudioProcessor::getTailLengthSeconds() const
@@ -363,6 +367,7 @@ void ChromaConsoleControllerAudioProcessor::releaseResources()
 }
 
 
+/*
 #ifndef JucePlugin_PreferredChannelConfigurations
 bool ChromaConsoleControllerAudioProcessor::isBusesLayoutSupported (const BusesLayout& layouts) const
 {
@@ -388,10 +393,29 @@ bool ChromaConsoleControllerAudioProcessor::isBusesLayoutSupported (const BusesL
   #endif
 }
 #endif
+*/
+
+bool ChromaConsoleControllerAudioProcessor::isBusesLayoutSupported(const BusesLayout& layouts) const
+{
+    // Reject any layout that tries to add audio inputs or outputs
+    if (layouts.getMainOutputChannelSet() != juce::AudioChannelSet::disabled() &&
+        layouts.getMainOutputChannelSet() != juce::AudioChannelSet::stereo())
+        return false;
+
+    if (layouts.getMainInputChannelSet() != juce::AudioChannelSet::disabled() &&
+        layouts.getMainInputChannelSet() != juce::AudioChannelSet::stereo())
+        return false;
+
+    return true;
+}
 
 void ChromaConsoleControllerAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midiMessages)
 {
     juce::ScopedNoDenormals noDenormals;
+    buffer.clear();
+    // Process preset MIDI changes
+    presetMidiHandler.processMidiMessages(midiMessages, buffer.getNumSamples());
+
     auto totalNumInputChannels  = getTotalNumInputChannels();
     auto totalNumOutputChannels = getTotalNumOutputChannels();
 
@@ -440,18 +464,42 @@ juce::AudioProcessorEditor* ChromaConsoleControllerAudioProcessor::createEditor(
 //==============================================================================
 void ChromaConsoleControllerAudioProcessor::getStateInformation (juce::MemoryBlock& destData)
 {
-    auto state = parameters.copyState();
-    std::unique_ptr<juce::XmlElement> xml(state.createXml());
+    // Create main state tree
+    juce::ValueTree state("PluginState");
+
+    // Save existing parameters
+    auto paramState = parameters.copyState();
+    state.appendChild(paramState, nullptr);
+
+    // Save preset manager state
+    auto presetState = presetManager.getState();
+    state.appendChild(presetState, nullptr);
+
+    // Convert to xml and save
+    auto xml = state.createXml();
     copyXmlToBinary(*xml, destData);
 }
 
 void ChromaConsoleControllerAudioProcessor::setStateInformation (const void* data, int sizeInBytes)
 {
-    std::unique_ptr<juce::XmlElement> xmlState(getXmlFromBinary(data, sizeInBytes));
+    // Load from binary
+    auto xml = getXmlFromBinary(data, sizeInBytes);
+    if (!xml)
+        return;
 
-    if (xmlState.get() != nullptr)
-        if (xmlState->hasTagName(parameters.state.getType()))
-            parameters.replaceState(juce::ValueTree::fromXml(*xmlState));
+    auto state = juce::ValueTree::fromXml(*xml);
+    if (!state.isValid())
+        return;
+
+    // Restore existing params
+    auto paramState = state.getChildWithName(parameters.state.getType());
+    if (paramState.isValid())
+        parameters.replaceState(paramState);
+
+    // Restore preset manager state
+    auto presetState = state.getChildWithName("PresetManagerState");
+    if (presetState.isValid())
+        presetManager.setState(presetState);
 }
 
 //==============================================================================

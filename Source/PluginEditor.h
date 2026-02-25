@@ -14,6 +14,7 @@
 #include "CCSliderModule.h"
 #include "CoveLNF.h"
 #include "melatonin_inspector/melatonin_inspector.h"
+#include "PresetBrowserComponent.h"
 
 class ChromaConsoleControllerAudioProcessorEditor : public juce::AudioProcessorEditor
 {
@@ -67,10 +68,12 @@ private:
     };
 
     std::vector<int> sliderColourIds = {
-        juce::Slider::thumbColourId,
-        juce::Slider::trackColourId,
-        juce::Slider::backgroundColourId,
-        juce::Slider::rotarySliderFillColourId
+        juce::Slider::rotarySliderFillColourId,
+        //CoveLNF::CoveRotarySlider::thumbEnabledID,
+        //CoveLNF::CoveRotarySlider::backgroundArcID,
+        juce::Slider::textBoxTextColourId,
+        juce::Slider::textBoxBackgroundColourId,
+        juce::Slider::textBoxOutlineColourId
     };
 
     void setLAF(); // Function to set Look And Feel colors
@@ -88,6 +91,8 @@ private:
     void setColumnProperties(int column, int value, bool first, bool second, bool third, bool fourth); // Setter for managing enabled state and color of columns
     void setColumnEnabled(int column, bool enabled, bool first, bool second, bool third, bool fourth); // Setter for toggling enabled state of a column with individual slider control aswell.
     void setColumnColour(int column, juce::Colour colour, bool first, bool second, bool third, bool fourth); // Setter for the colour of the sliders in the columns
+    void setColumnTextBoxColour(int column, juce::Colour textColour, juce::Colour bgColour, juce::Colour outlineColour,
+        bool first, bool second, bool third, bool fourth);
 
     // Helper methods
     int calculateNumRows() const;
@@ -96,6 +101,15 @@ private:
     juce::Colour getColourForValue(int value) const;
     bool getShowAdvancedSettings() const;
     void setShowAdvancedSettings(bool show);
+    
+
+    // Preset Browser
+    juce::TextButton presetButton;          // Button to show/hide preset browser
+    PresetBrowserComponent presetBrowser;   
+    bool showPresetBrowser = false;         // Visibility state
+    static constexpr int presetBrowserWidth = 300;
+
+    void togglePresetBrowser();
 
     melatonin::Inspector inspector{ *this, false };
     

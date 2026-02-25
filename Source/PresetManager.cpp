@@ -63,7 +63,7 @@ bool PresetManager::savePreset(const juce::String& presetName, const juce::Strin
 
     // Write to file
     auto xml = presetState.createXml();
-    if (xml == nullptr || !xml->writeTo(presetFile))
+    if (xml == nullptr || !xml->writeToFile(presetFile, {}))
         return false;
 
     // Update preset list
@@ -166,16 +166,21 @@ bool PresetManager::loadPreset(const juce::File& presetFile)
 
 bool PresetManager::loadPresetByIndex(int index)
 {
-    const juce::ScopedLock sl(presetLock);
+    juce::File fileToLoad;
 
-    if (index >= 0 && index < presets.size())
     {
-        return loadPreset(presets[index].file);
+        const juce::ScopedLock sl(presetLock);
+
+        if (index < 0 || index >= presets.size())
+            return false;
+
+        fileToLoad = presets[index].file;
     }
 
-    return false;
+    // Load outside the lock
+    return loadPreset(fileToLoad);
 }
-
+/*
 bool PresetManager::deletePreset(const juce::File& presetFile)
 {
     if (!presetFile.existsAsFile())
@@ -208,19 +213,79 @@ bool PresetManager::deletePreset(const juce::File& presetFile)
 
     return success;
 }
+*/
+
+bool PresetManager::deletePreset(const juce::File& presetFile)
+{
+
+    if (!presetFile.existsAsFile())
+    {
+        return false;
+    }
+
+    bool success = presetFile.deleteFile();
+
+    if (success)
+    {
+        // Check if we deleted the currently loaded preset
+        bool deletedCurrentPreset = false;
+        {
+            const juce::ScopedLock sl(presetLock);
+            if (currentPresetIndex >= 0 && currentPresetIndex < presets.size())
+                deletedCurrentPreset = (presets[currentPresetIndex].file == presetFile);
+        }
+        scanPresetsInDirectory();
+        notifyPresetListChanged();
+
+        if (deletedCurrentPreset)
+        {
+            {
+                const juce::ScopedLock sl(presetLock);
+                currentPresetIndex = -1;
+            }
+            notifyCurrentPresetChanged();
+        }
+    }
+
+    return success;
+}
+
+void PresetManager::loadNextPreset()
+{
+    juce::File fileToLoad;
+
+    {
+        const juce::ScopedLock sl(presetLock);
+
+        if (presets.isEmpty())
+            return;
+
+        int nextIndex = (currentPresetIndex + 1) % presets.size();
+        fileToLoad = presets[nextIndex].file;
+    }
+
+    // Load outside the lock to avoid deadlock
+    loadPreset(fileToLoad);
+}
 
 void PresetManager::loadPreviousPreset()
 {
-    const juce::ScopedLock sl(presetLock);
+    juce::File fileToLoad;
 
-    if (presets.isEmpty())
-        return;
+    {
+        const juce::ScopedLock sl(presetLock);
 
-    int prevIndex = currentPresetIndex - 1; // overflow error?
-    if (prevIndex < 0)
-        prevIndex = presets.size() - 1;
+        if (presets.isEmpty())
+            return;
 
-    loadPresetByIndex(prevIndex);
+        int prevIndex = currentPresetIndex - 1;
+        if (prevIndex < 0)
+            prevIndex = presets.size() - 1;
+
+        fileToLoad = presets[prevIndex].file;
+    }
+
+    loadPreset(fileToLoad);
 }
 
 int PresetManager::getCurrentPresetIndex() const
@@ -407,15 +472,20 @@ void PresetManager::scanPresetsInDirectory()
         }
     }
 
-    // Sort by Category then Name
-    presets.sort([](const Preset& a, const Preset& b) -> int
+    // Sort by Category then Name using a comparator struct
+    struct PresetComparator
+    {
+        static int compareElements(const Preset& a, const Preset& b)
         {
-            int categoryCompare = a.category.compareIgnoreCase(b.category); //comparing category as an int?
+            int categoryCompare = a.category.compareIgnoreCase(b.category);
             if (categoryCompare != 0)
                 return categoryCompare;
-
             return a.name.compareIgnoreCase(b.name);
-        });
+        }
+    };
+
+    PresetComparator comparator;
+    presets.sort(comparator);
 }
 
 juce::File PresetManager::createPresetFile(const juce::String& presetName, const juce::String& category)
@@ -438,7 +508,7 @@ juce::File PresetManager::createPresetFile(const juce::String& presetName, const
     int counter = 1;
     while (file.exists())
     {
-        fileName = safeName + "_" + juce::String(counter++);
+        fileName = safeName + "_" + juce::String(counter++) + PRESET_EXTENSION;
         file = categoryDir.getChildFile(fileName);
     }
 

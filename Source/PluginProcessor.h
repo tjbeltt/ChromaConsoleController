@@ -9,6 +9,8 @@
 #pragma once
 
 #include <JuceHeader.h>
+#include "PresetManager.h"
+#include "PresetMidiHandler.h"
 
 //==============================================================================
 /**
@@ -33,9 +35,12 @@ public:
     void prepareToPlay (double sampleRate, int samplesPerBlock) override;
     void releaseResources() override;
 
+    /*
    #ifndef JucePlugin_PreferredChannelConfigurations
     bool isBusesLayoutSupported (const BusesLayout& layouts) const override;
    #endif
+   */
+    bool isBusesLayoutSupported(const BusesLayout& layouts) const override;
 
     void processBlock (juce::AudioBuffer<float>&, juce::MidiBuffer&) override;
 
@@ -68,11 +73,17 @@ public:
     int getMidiChannel() const noexcept { return *parameters.getRawParameterValue("midiChannel"); }
     void sendCurrentSliderValues();
     void sendMidiMessage(const juce::MidiMessage& message);
+
+    PresetManager& getPresetManager() { return presetManager; }
+    PresetMidiHandler& getPresetMidiHandler() { return presetMidiHandler; }
 private:
     std::unordered_map<int, int> previousCCValues; // CC number -> last value
 
     juce::MidiBuffer pendingMidiMessages;
     juce::CriticalSection pendingMidiMessagesLock;
+
+    PresetManager presetManager;
+    PresetMidiHandler presetMidiHandler;
 
     juce::AudioProcessorValueTreeState::ParameterLayout createParameterLayout();
     //==============================================================================

@@ -70,6 +70,7 @@ void CCSliderModule::setEnabled(bool shouldBeEnabled)
 void CCSliderModule::setSliderColour(int colourId, juce::Colour colour)
 {
     slider.setColour(colourId, colour);
+    slider.lookAndFeelChanged(); // forces textbox label to be recreated
 }
 
 void CCSliderModule::setSliderColours(const std::vector<int>& colourIds, juce::Colour colour)
