@@ -36,7 +36,7 @@ ChromaConsoleControllerAudioProcessorEditor::ChromaConsoleControllerAudioProcess
     channelAttachment(p.parameters, "midiChannel", channelSelector),
     updateAttachment(p.parameters, "updateValues", updateButton),
     presetBrowser(p.getPresetManager(), p.getPresetMidiHandler())
-{
+{    
     setLookAndFeel(&lnf);
 
     // Preset Browser =========================
@@ -81,7 +81,7 @@ ChromaConsoleControllerAudioProcessorEditor::ChromaConsoleControllerAudioProcess
     setupColumnInteractions();
 
     // Set initial size
-    setResizable(true, true);
+    setResizable(true, false);
     setConstrainer(&constrainer);
     constrainer.setSizeLimits(600, 700, 1920, 1080);
     
@@ -99,8 +99,7 @@ ChromaConsoleControllerAudioProcessorEditor::ChromaConsoleControllerAudioProcess
         setColumnProperties(3, ccModules[3]->getSlider().getValue(), true, true, false, false);
     }
 
-    
-
+    setOpaque(true);
 }
 
 ChromaConsoleControllerAudioProcessorEditor::~ChromaConsoleControllerAudioProcessorEditor()

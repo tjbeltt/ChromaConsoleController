@@ -24,8 +24,8 @@ PresetManager::PresetManager(juce::AudioProcessor& p) : processor(p)
         presetDirectory.createDirectory();
 
     // Load initial preset list and MIDI mappings
-    scanPresetsInDirectory();
     loadMidiMappings();
+    scanPresetsInDirectory();
 }
 
 PresetManager::~PresetManager()
@@ -38,31 +38,56 @@ bool PresetManager::savePreset(const juce::String& presetName, const juce::Strin
     if (presetName.isEmpty())
         return false;
 
-    // Create preset file
     auto presetFile = createPresetFile(presetName, category);
 
-    // Get current processor state
-    juce::MemoryBlock stateData;
-    processor.getStateInformation(stateData); // likely not to work with current setup
+    if (presetFile.exists())
+    {
+        // File Conflict: Ask user
+        auto options = juce::MessageBoxOptions()
+            .withIconType(juce::MessageBoxIconType::QuestionIcon)
+            .withTitle("Preset Already Exists")
+            .withMessage("A preset named '" + presetName + "' already exists.\nWould you like to overwrite it, or save as a new preset?")
+            .withButton("Overwrite")
+            .withButton("Save as New")
+            .withButton("Cancel");
 
-    // Create ValueTree for preset
+        juce::AlertWindow::showAsync(options, [this, presetFile, presetName, category](int result)
+            {
+                // Issue - result ints may not correlate to correct option callback.
+                if (result == 1) // Overwrite
+                {
+                    writePresetToFile(presetFile, presetName, category);
+                }
+                else if (result == 2)
+                {
+                    auto [newFile, newName] = getIncrementedPresetFile(presetName, category);
+                    writePresetToFile(newFile, newName, category);
+                }
+                // 0 = cancel
+            });
+        return true; // dialog is pending
+    }
+
+    return writePresetToFile(presetFile, presetName, category);
+}
+
+bool PresetManager::writePresetToFile(const juce::File& presetFile, const juce::String& presetName, const juce::String& category)
+{
+    juce::MemoryBlock stateData;
+    processor.getStateInformation(stateData);
+
     juce::ValueTree presetState("PresetState");
     presetState.setProperty("name", presetName, nullptr);
     presetState.setProperty("category", category, nullptr);
     presetState.setProperty("version", JucePlugin_VersionString, nullptr);
     presetState.setProperty("timestamp", juce::Time::getCurrentTime().toISO8601(true), nullptr);
 
-    // Store the state data as binary
     auto stateTree = juce::ValueTree::fromXml(stateData.toString());
     if (!stateTree.isValid())
-    {
-        // If XML parsing fails, store as base64
         presetState.setProperty("stateData", stateData.toBase64Encoding(), nullptr);
-    } else {
+    else
         presetState.appendChild(stateTree, nullptr);
-    }
 
-    // Write to file
     auto xml = presetState.createXml();
     if (xml == nullptr || !xml->writeToFile(presetFile, {}))
         return false;
@@ -72,7 +97,6 @@ bool PresetManager::savePreset(const juce::String& presetName, const juce::Strin
         const juce::ScopedLock sl(presetLock);
         scanPresetsInDirectory();
 
-        // Find and set as current preset
         for (int i = 0; i < presets.size(); i++)
         {
             if (presets[i].file == presetFile)
@@ -83,7 +107,6 @@ bool PresetManager::savePreset(const juce::String& presetName, const juce::Strin
         }
     }
 
-    // Notify listeners
     Preset savedPreset;
     savedPreset.name = presetName;
     savedPreset.category = category;
@@ -258,6 +281,24 @@ bool PresetManager::deletePreset(const juce::File& presetFile)
         return false;
     }
 
+    // Clear MIDI mappings
+    {
+        const juce::ScopedLock sl(midiMappingLock);
+        juce::Array<int> notesToRemove;
+
+        for (juce::HashMap<int, juce::File>::Iterator i(midiNoteToPreset); i.next();)
+        {
+            if (i.getValue() == presetFile)
+                notesToRemove.add(i.getKey());
+        }
+
+        for (auto note : notesToRemove)
+            midiNoteToPreset.remove(note);
+
+        if (!notesToRemove.isEmpty())
+            saveMidiMappings();
+    }
+
     bool success = presetFile.deleteFile();
 
     if (success)
@@ -388,9 +429,72 @@ bool PresetManager::setMidiNoteForPreset(const juce::File& presetFile, int midiN
     if (!presetFile.existsAsFile())
         return false;
 
-    const juce::ScopedLock sl(midiMappingLock);
-    midiNoteToPreset.set(midiNote, presetFile);
-    saveMidiMappings();
+    // Check is preset already has a different note assigned. Clear it
+    {
+        const juce::ScopedLock sl(midiMappingLock);
+        juce::Array<int> notesToRemove;
+
+        for (juce::HashMap<int, juce::File>::Iterator i(midiNoteToPreset); i.next();)
+        {
+            if (i.getValue() == presetFile && i.getKey() != midiNote)
+                notesToRemove.add(i.getKey());
+        }
+
+        for (auto note : notesToRemove)
+            midiNoteToPreset.remove(note);
+    }
+
+    // Check if MIDI note is already mapped to another preset
+    juce::File existingPreset;
+    {
+        const juce::ScopedLock sl(midiMappingLock);
+        if (midiNoteToPreset.contains(midiNote))
+        {
+            auto mapped = midiNoteToPreset[midiNote];
+            if (mapped != presetFile)
+                existingPreset = mapped;
+        }
+    }
+
+    if (existingPreset.existsAsFile())
+    {
+        // Note is already assigned to another preset — ask the user
+        auto existingName = existingPreset.getFileNameWithoutExtension();
+
+        auto options = juce::MessageBoxOptions()
+            .withIconType(juce::MessageBoxIconType::QuestionIcon)
+            .withTitle("MIDI Note Already Assigned")
+            .withMessage("Midi note " + juce::String(midiNote) + " is currently assigned to '" + existingName + "'\n\nWould you like to reassign it to this preset?")
+            .withButton("Reassign")
+            .withButton("Cancel");
+
+        juce::AlertWindow::showAsync(options,
+            [this, presetFile, midiNote](int result)
+            {
+                if (result == 1) // Reassign
+                {
+                    {
+                        const juce::ScopedLock sl(midiMappingLock);
+                        midiNoteToPreset.set(midiNote, presetFile);
+                        saveMidiMappings();
+                    }
+
+                    scanPresetsInDirectory();
+                    notifyPresetListChanged();
+                }
+            });
+
+        return true; // dialog is pending
+    }
+
+    // No conflict, assign directly
+    {
+        const juce::ScopedLock sl(midiMappingLock);
+        midiNoteToPreset.set(midiNote, presetFile);
+        saveMidiMappings();
+    }
+
+    scanPresetsInDirectory();
     notifyPresetListChanged();
 
     return true;
@@ -423,9 +527,14 @@ int PresetManager::getMidiNoteForPreset(const juce::File& presetFile) const
 
 void PresetManager::clearMidiMapping(int midiNote)
 {
-    const juce::ScopedLock sl(midiMappingLock);
-    midiNoteToPreset.remove(midiNote);
-    saveMidiMappings();
+    {
+        const juce::ScopedLock sl(midiMappingLock);
+        midiNoteToPreset.remove(midiNote);
+        saveMidiMappings();
+    }
+
+
+    scanPresetsInDirectory();
     notifyPresetListChanged();
 }
 
@@ -538,21 +647,28 @@ juce::File PresetManager::createPresetFile(const juce::String& presetName, const
         categoryDir.createDirectory();
     }
 
-    // Sanitize preset name for filename
     auto safeName = presetName.replaceCharacters("/\\:*?\"<>|", "___________");
     auto fileName = safeName + PRESET_EXTENSION;
+    return categoryDir.getChildFile(fileName);
+}
 
-    auto file = categoryDir.getChildFile(fileName);
+std::pair<juce::File, juce::String> PresetManager::getIncrementedPresetFile(const juce::String& presetName, const juce::String& category)
+{
+    auto categoryDir = presetDirectory;
+    if (category.isNotEmpty())
+        categoryDir = presetDirectory.getChildFile(category);
 
-    // If file exists, add number suffix
+    auto safeName = presetName.replaceCharacters("/\\:*?\"<>|", "___________");
     int counter = 1;
-    while (file.exists())
-    {
-        fileName = safeName + "_" + juce::String(counter++) + PRESET_EXTENSION;
-        file = categoryDir.getChildFile(fileName);
-    }
+    juce::String incrementedName;
+    juce::File file;
 
-    return file;
+    do {
+        incrementedName = safeName + "_" + juce::String(counter++);
+        file = categoryDir.getChildFile(incrementedName + PRESET_EXTENSION);
+    } while (file.exists());
+
+    return { file, incrementedName };
 }
 
 PresetManager::Preset PresetManager::loadPresetFromFile(const juce::File& file)

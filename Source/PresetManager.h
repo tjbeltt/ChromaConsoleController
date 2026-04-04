@@ -44,6 +44,7 @@ public:
     //=========================
     // Core preset operations
     bool savePreset(const juce::String& presetName, const juce::String& category = "User");
+    bool writePresetToFile(const juce::File& presetFile, const juce::String& presetName, const juce::String& category);
     bool loadPreset(const juce::File& presetFile);
     bool loadPresetByIndex(int index);
     bool deletePreset(const juce::File& presetFile);
@@ -61,6 +62,7 @@ public:
     juce::Array<Preset> getPresetsByCategory(const juce::String& category) const;
     juce::StringArray getCategories() const;
     void refreshPresetList();
+    std::pair<juce::File, juce::String> getIncrementedPresetFile(const juce::String& presetName, const juce::String& category);
 
     //================================
     // Midi Mapping

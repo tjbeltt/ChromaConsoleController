@@ -147,9 +147,11 @@ void PresetBrowserComponent::presetLoaded(const PresetManager::Preset& preset)
 
 void PresetBrowserComponent::presetSaved(const PresetManager::Preset& preset)
 {
+    /*
     updatePresetList();
     // Reset category filter to show all presets
     categorySelector.setSelectedId(1, juce::sendNotification);
+    */
 }
 
 void PresetBrowserComponent::presetListChanged()
@@ -161,7 +163,7 @@ void PresetBrowserComponent::presetListChanged()
     for (int i = 0; i < categories.size(); i++)
         categorySelector.addItem(categories[i], i + 2);
 
-    updatePresetList();
+    categorySelector.setSelectedId(1, juce::sendNotification);
 }
 
 void PresetBrowserComponent::currentPresetChanged()
@@ -259,9 +261,6 @@ void PresetBrowserComponent::showSavePresetDialog()
                 {
                     presetManager.savePreset(presetName, category);
                 }
-
-                // Reset category filter to show all presets
-                categorySelector.setSelectedId(1, juce::sendNotification);
             }
         }), true);
 }
@@ -290,9 +289,6 @@ void PresetBrowserComponent::showDeletePresetDialog()
             if (result == 1)
             {
                 presetManager.deletePreset(fileToDelete);
-
-                // Reset category filter to show all presets
-                categorySelector.setSelectedId(1, juce::sendNotification);
             }
         }), true);
 }
