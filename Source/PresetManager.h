@@ -69,6 +69,8 @@ public:
     int getMidiNoteForPreset(const juce::File& presetFile) const;
     void clearMidiMapping(int midiNote);
     const juce::HashMap<int, juce::File>& getMidiMappings() const;
+    void setPreserveMidiChannel(bool shouldPreserve);
+    bool getPreserveMidiChannel() const;
 
     //============================
     // Directories
@@ -118,6 +120,8 @@ private:
     juce::HashMap<int, juce::File> midiNoteToPreset; // Midi Note -> Preset File
 
     juce::ListenerList<Listener> listeners;
+
+    std::atomic<bool> preserveMidiChannel{ true };
 
     static constexpr const char* PRESET_EXTENSION = ".ccpreset";
     static constexpr const char* MIDI_MAPPING_FILE = "midi_mappings.xml";

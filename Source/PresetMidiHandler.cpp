@@ -71,6 +71,18 @@ void PresetMidiHandler::setLearningMode(bool shouldLearn)
     learningMode.store(shouldLearn);
 }
 
+void PresetMidiHandler::setMidiLearnCallback(std::function <void(int)> callback)
+{
+    const juce::ScopedLock sl(callBackLock);
+    midiLearnCallback = callback;
+}
+
+void PresetMidiHandler::clearMidiLearnCallback()
+{
+    const juce::ScopedLock sl(callBackLock);
+    midiLearnCallback = nullptr;
+}
+
 void PresetMidiHandler::handleNoteOn(int noteNumber, int velocity, int channel)
 {
     // Check velocity threshold
@@ -85,6 +97,16 @@ void PresetMidiHandler::handleNoteOn(int noteNumber, int velocity, int channel)
         activeNotes.insert(noteNumber);
     }
     
+    // Check if there's a MIDI learn callback active
+    {
+        const juce::ScopedLock sl(callBackLock);
+        if (midiLearnCallback)
+        {
+            midiLearnCallback(noteNumber);
+            return; // Don't process any further when learning for UI
+        }
+    }
+
     if (learningMode.load())
     {
         auto* currentPreset = presetManager.getCurrentPreset();

@@ -9,6 +9,7 @@
 */
 
 #include "PresetManager.h"
+#include "PluginProcessor.h"
 
 PresetManager::PresetManager(juce::AudioProcessor& p) : processor(p)
 {
@@ -95,6 +96,17 @@ bool PresetManager::savePreset(const juce::String& presetName, const juce::Strin
     return true;
 }
 
+bool PresetManager::getPreserveMidiChannel() const
+{
+    return preserveMidiChannel.load();
+}
+
+
+void PresetManager::setPreserveMidiChannel(bool shouldPreserve)
+{
+    preserveMidiChannel.store(shouldPreserve);
+}
+
 bool PresetManager::loadPreset(const juce::File& presetFile)
 {
     if (!presetFile.existsAsFile())
@@ -117,7 +129,9 @@ bool PresetManager::loadPreset(const juce::File& presetFile)
         // Load from base64
         auto base64 = presetState.getProperty("stateData").toString();
         stateData.fromBase64Encoding(base64);
-    } else {
+    } 
+    else 
+    {
         // Try to extract from child ValueTree
         for (int i = 0; i < presetState.getNumChildren(); i++)
         {
@@ -132,13 +146,34 @@ bool PresetManager::loadPreset(const juce::File& presetFile)
         }
     }
 
-    // Apply state to processor
-    if (stateData.getSize() > 0)
+    // Save current MIDI channel before loading preset
+    float savedMidiChannelNormalized = 0.0f;
+    bool shouldRestore = preserveMidiChannel.load();
+
+    if (shouldRestore)
     {
-        processor.setStateInformation(stateData.getData(), (int)stateData.getSize());
+        auto& chromaProcessor = dynamic_cast<ChromaConsoleControllerAudioProcessor&>(processor);
+        if (auto* midiChannelParam = chromaProcessor.parameters.getParameter("midiChannel"))
+        {
+            savedMidiChannelNormalized = midiChannelParam->getValue();
+        }
     }
 
-    // Update current preset
+    // Load Preset state
+    // This will overwrite everything including the MIDI channel
+    if (stateData.getSize() > 0)
+        processor.setStateInformation(stateData.getData(), (int)stateData.getSize());
+
+    // Restore MIDI channel if preservation enabled
+    if (shouldRestore)
+    {
+        auto& chromaProcessor = dynamic_cast<ChromaConsoleControllerAudioProcessor&>(processor);
+        if (auto* midiChannelParam = chromaProcessor.parameters.getParameter("midiChannel"))
+        {
+            midiChannelParam->setValueNotifyingHost(savedMidiChannelNormalized);
+        }
+    }
+
     {
         const juce::ScopedLock sl(presetLock);
         for (int i = 0; i < presets.size(); i++)
@@ -356,6 +391,7 @@ bool PresetManager::setMidiNoteForPreset(const juce::File& presetFile, int midiN
     const juce::ScopedLock sl(midiMappingLock);
     midiNoteToPreset.set(midiNote, presetFile);
     saveMidiMappings();
+    notifyPresetListChanged();
 
     return true;
 }
@@ -390,6 +426,7 @@ void PresetManager::clearMidiMapping(int midiNote)
     const juce::ScopedLock sl(midiMappingLock);
     midiNoteToPreset.remove(midiNote);
     saveMidiMappings();
+    notifyPresetListChanged();
 }
 
 const juce::HashMap<int, juce::File>& PresetManager::getMidiMappings() const
@@ -428,6 +465,7 @@ juce::ValueTree PresetManager::getState() const
 
     state.setProperty("presetDirectory", presetDirectory.getFullPathName(), nullptr);
     state.setProperty("currentPresetIndex", currentPresetIndex, nullptr);
+    //state.setProperty("preserveMidiChannel", preserveMidiChannel.load(), nullptr);
 
     return state;
 }
@@ -442,6 +480,8 @@ void PresetManager::setState(const juce::ValueTree& state)
         setPresetDirectory(juce::File(dir));
 
     currentPresetIndex = state.getProperty("currentPresetIndex", -1);
+
+    //preserveMidiChannel.store(state.getProperty("preserveMidiChannel", true));
 }
 
 //============================================================================================================
@@ -563,6 +603,7 @@ void PresetManager::saveMidiMappings()
         auto mappingFile = presetDirectory.getChildFile(MIDI_MAPPING_FILE);
         xml->writeTo(mappingFile);
     }
+
 }
 
 void PresetManager::loadMidiMappings()

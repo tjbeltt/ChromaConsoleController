@@ -10,8 +10,8 @@
 
 #include "PresetBrowserComponent.h"
 
-PresetBrowserComponent::PresetBrowserComponent(PresetManager& pm)
-    : presetManager(pm)
+PresetBrowserComponent::PresetBrowserComponent(PresetManager& pm, PresetMidiHandler& mh)
+    : presetManager(pm), presetMidiHandler(mh)
 {
     // Create list box model
     listBoxModel = std::make_unique<PresetListBoxModel>(presetManager);
@@ -56,6 +56,16 @@ PresetBrowserComponent::PresetBrowserComponent(PresetManager& pm)
     midiMapButton.setButtonText("MIDI Map");
     midiMapButton.onClick = [this] { showMidiMappingDialog(); };
     addAndMakeVisible(midiMapButton);
+
+    preserveMidiChannelButton.setButtonText("Safe");
+    preserveMidiChannelButton.setClickingTogglesState(true);
+    preserveMidiChannelButton.setToggleState(presetManager.getPreserveMidiChannel(), juce::dontSendNotification);
+    preserveMidiChannelButton.onClick = [this]() {
+        bool newState = preserveMidiChannelButton.getToggleState();
+        presetManager.setPreserveMidiChannel(newState);
+        updatePreserveMidiChannelButton();
+        };
+    addAndMakeVisible(preserveMidiChannelButton);
 
     // Setup current preset label
     currentPresetLabel.setText("No Preset Loaded", juce::dontSendNotification);
@@ -117,13 +127,15 @@ void PresetBrowserComponent::resized()
 
     // Action buttons
     auto buttonArea = bounds.removeFromTop(30);
-    auto buttonWidth = buttonArea.getWidth() / 3 - 5;
+    auto buttonWidth = (buttonArea.getWidth() -15) / 4;
 
     saveButton.setBounds(buttonArea.removeFromLeft(buttonWidth));
     buttonArea.removeFromLeft(5);
     deleteButton.setBounds(buttonArea.removeFromLeft(buttonWidth));
     buttonArea.removeFromLeft(5);
-    midiMapButton.setBounds(buttonArea);
+    midiMapButton.setBounds(buttonArea.removeFromLeft(buttonWidth));
+    buttonArea.removeFromLeft(5);
+    preserveMidiChannelButton.setBounds(buttonArea);
 
 }
 
@@ -187,6 +199,10 @@ void PresetBrowserComponent::timerCallback()
     auto* currentPreset = presetManager.getCurrentPreset();
     deleteButton.setEnabled(currentPreset != nullptr);
     midiMapButton.setEnabled(currentPreset != nullptr);
+
+    preserveMidiChannelButton.setToggleState(
+        presetManager.getPreserveMidiChannel(),
+        juce::dontSendNotification);
 }
 
 void PresetBrowserComponent::updatePresetList()
@@ -283,39 +299,67 @@ void PresetBrowserComponent::showDeletePresetDialog()
 
 void PresetBrowserComponent::showMidiMappingDialog()
 {
-    auto* currentPreset = presetManager.getCurrentPreset();
-    if (!currentPreset)
+    juce::File presetFile;
+    {
+        auto* currentPreset = presetManager.getCurrentPreset();
+        if (!currentPreset)
+            return;
+        presetFile = currentPreset->file;
+    }
+
+    if (!presetFile.exists()) // for safety
         return;
 
-    auto* window = new juce::AlertWindow("MIDI Mapping",
-        "Enter MIDI note (0-127) or -1 to clear:",
-        juce::AlertWindow::NoIcon);
+    auto currentNote = presetManager.getMidiNoteForPreset(presetFile);
 
-    auto currentNote = presetManager.getMidiNoteForPreset(currentPreset->file);
-    window->addTextEditor("midiNote", juce::String(currentNote), "MIDI Note:");
-    window->addButton("OK", 1, juce::KeyPress(juce::KeyPress::returnKey));
-    window->addButton("Cance", 0, juce::KeyPress(juce::KeyPress::escapeKey));
+    // Create modal window
+    auto* dialog = new MidiLearnDialog(presetManager, presetFile, currentNote);
 
-    window->enterModalState(true, juce::ModalCallbackFunction::create([this, window, currentNote](int result)
+    juce::Component::SafePointer<MidiLearnDialog> safeDialog(dialog);
+
+    // Callbacks
+    presetMidiHandler.setMidiLearnCallback([safeDialog](int note) {
+        juce::MessageManager::callAsync([safeDialog, note]() {
+            if (safeDialog != nullptr)
+                safeDialog->midiNoteReceived(note);
+            });
+        });
+
+    // Handle dialog close
+    dialog->onClose = [this]() {
+        presetMidiHandler.clearMidiLearnCallback();
+
+        // update preset list
+        juce::MessageManager::callAsync([this]() {
+            updatePresetList();
+            });
+        };
+
+    juce::DialogWindow::LaunchOptions options;
+    options.content.setOwned(dialog);
+    options.dialogTitle = "MIDI Mapping";
+    options.dialogBackgroundColour = juce::Colour(0xff2a2a2a);
+    options.escapeKeyTriggersCloseButton = true;
+    options.useNativeTitleBar = true;
+    options.resizable = false;
+    options.useBottomRightCornerResizer = false;
+
+    options.launchAsync();
+}
+
+void PresetBrowserComponent::updatePreserveMidiChannelButton()
+{
+    bool isPreserving = presetManager.getPreserveMidiChannel();
+
+    if (isPreserving)
     {
-        if (result == 1)
-        {
-            auto noteText = window->getTextEditorContents("midiNote");
-            int note = noteText.getIntValue();
+        preserveMidiChannelButton.setColour(juce::TextButton::buttonColourId,
+            juce::Colours::darkgreen.darker(0.3f));
+    }
+    else
+    {
+        preserveMidiChannelButton.setColour(juce::TextButton::buttonColourId,
+            juce::Colours::darkred.darker(0.3f));
+    }
 
-            if (note >= -1 && note <= 127)
-            {
-                if (note == -1)
-                    presetManager.clearMidiMapping(currentNote);
-                else
-                {
-                    auto* preset = presetManager.getCurrentPreset();
-                    if (preset)
-                        presetManager.setMidiNoteForPreset(preset->file, note);
-                }
-                updatePresetList();
-            }
-        }
-
-    }), true);
 }

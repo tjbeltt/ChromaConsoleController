@@ -35,7 +35,7 @@ ChromaConsoleControllerAudioProcessorEditor::ChromaConsoleControllerAudioProcess
     audioProcessor(p),
     channelAttachment(p.parameters, "midiChannel", channelSelector),
     updateAttachment(p.parameters, "updateValues", updateButton),
-    presetBrowser(p.getPresetManager())
+    presetBrowser(p.getPresetManager(), p.getPresetMidiHandler())
 {
     setLookAndFeel(&lnf);
 

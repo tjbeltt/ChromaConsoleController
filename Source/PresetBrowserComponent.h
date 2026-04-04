@@ -12,6 +12,8 @@
 
 #include <JuceHeader.h>
 #include "PresetManager.h"
+#include "MidiLearnDialog.h"
+#include "PresetMidiHandler.h"
 
 /*
 UI Component for browsing and managing presets
@@ -23,7 +25,7 @@ class PresetBrowserComponent : public juce::Component,
     private juce::Timer
 {
 public:
-    PresetBrowserComponent(PresetManager& pm);
+    PresetBrowserComponent(PresetManager& pm, PresetMidiHandler& mh);
     ~PresetBrowserComponent() override;
 
     void paint(juce::Graphics& g) override;
@@ -33,14 +35,17 @@ public:
     void presetSaved(const PresetManager::Preset& preset) override;
     void presetListChanged() override;
     void currentPresetChanged() override;
+
 private:
     void timerCallback() override;
     void updatePresetList();
     void showSavePresetDialog();
     void showDeletePresetDialog();
     void showMidiMappingDialog();
+    void updatePreserveMidiChannelButton();
 
     PresetManager& presetManager;
+    PresetMidiHandler& presetMidiHandler;
 
     // UI Components
     juce::ComboBox categorySelector;
@@ -50,6 +55,7 @@ private:
     juce::TextButton saveButton;
     juce::TextButton deleteButton;
     juce::TextButton midiMapButton;
+    juce::TextButton preserveMidiChannelButton;
     juce::Label currentPresetLabel;
 
     // Preset List Model

@@ -15,6 +15,7 @@
 #include "CoveLNF.h"
 #include "melatonin_inspector/melatonin_inspector.h"
 #include "PresetBrowserComponent.h"
+#include "PresetMidiHandler.h"
 
 class ChromaConsoleControllerAudioProcessorEditor : public juce::AudioProcessorEditor
 {
@@ -111,7 +112,7 @@ private:
 
     void togglePresetBrowser();
 
-    melatonin::Inspector inspector{ *this, false };
+    //melatonin::Inspector inspector{ *this, false };
     
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(ChromaConsoleControllerAudioProcessorEditor)

@@ -44,6 +44,11 @@ public:
     void setLearningMode(bool shouldLearn);
     bool isLearningMode() const { return learningMode.load(); };
 
+    // Set callback for MIDI note learning (called by audio thread)
+    // Use MessageManager::callAsync inside the callback for UI updates
+    void setMidiLearnCallback(std::function<void(int midiNote)> callback);
+    void clearMidiLearnCallback();
+
 private:
     void handleNoteOn(int noteNumber, int velocity, int channel);
 
@@ -57,6 +62,10 @@ private:
     // Thread-safe set for tracking currently pressed notes
     juce::CriticalSection notesLock;
     std::set<int> activeNotes;
+
+    // MIDI learn callback
+    juce::CriticalSection callBackLock;
+    std::function<void(int)> midiLearnCallback;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(PresetMidiHandler)
 };

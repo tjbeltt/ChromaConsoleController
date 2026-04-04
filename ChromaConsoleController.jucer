@@ -10,6 +10,8 @@
               pluginVST3Category="">
   <MAINGROUP id="ihV1F5" name="Chroma Console Controller">
     <GROUP id="{7944C026-5879-F573-7109-4C7608DE8CB1}" name="Source">
+      <FILE id="fYpk3n" name="MidiLearnDialog.h" compile="0" resource="0"
+            file="Source/MidiLearnDialog.h"/>
       <FILE id="e1KlmX" name="PresetBrowserComponent.cpp" compile="1" resource="0"
             file="Source/PresetBrowserComponent.cpp"/>
       <FILE id="NRpnIh" name="PresetBrowserComponent.h" compile="0" resource="0"
