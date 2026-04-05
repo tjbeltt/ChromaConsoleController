@@ -9,31 +9,29 @@
 */
 
 #pragma once
+#include <JuceHeader.h>
 
 namespace VersionInfo
 {
-    static constexpr int major = 1;
-    static constexpr int minor = 1;
-    static constexpr int patch = 0;
-
-    static inline juce::String toString()
+    static inline juce::String currentVersion()
     {
-        return juce::String(major) + "." + juce::String(minor) + "." + juce::String(patch);
+        return JucePlugin_VersionString;
     }
 
-    // Compare against a "major.minor.patch" string
-    // Returns true if the remote version is newer
     static inline bool isNewerThan(const juce::String& remoteVersion)
     {
-        auto parts = juce::StringArray::fromTokens(remoteVersion, ".", "");
-        if (parts.size() < 3) return false;
+        auto remote = juce::StringArray::fromTokens(remoteVersion, ".", "");
+        auto local = juce::StringArray::fromTokens(JucePlugin_VersionString, ".", "");
 
-        int rMajor = parts[0].getIntValue();
-        int rMinor = parts[1].getIntValue();
-        int rPatch = parts[2].getIntValue();
+        for (int i = 0; i < 3; i++)
+        {
+            int r = i < remote.size() ? remote[i].getIntValue() : 0;
+            int l = i < local.size() ? local[i].getIntValue() : 0;
 
-        if (rMajor != major) return rMajor > major;
-        if (rMinor != minor) return rMinor > minor;
-        return rPatch > patch;
+            if (r != l)
+                return r > l;
+        }
+
+        return false;
     }
 }
