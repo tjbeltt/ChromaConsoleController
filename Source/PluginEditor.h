@@ -16,8 +16,10 @@
 #include "melatonin_inspector/melatonin_inspector.h"
 #include "PresetBrowserComponent.h"
 #include "PresetMidiHandler.h"
+#include "UpdateChecker.h"
 
-class ChromaConsoleControllerAudioProcessorEditor : public juce::AudioProcessorEditor
+class ChromaConsoleControllerAudioProcessorEditor : public juce::AudioProcessorEditor,
+	public UpdateChecker::Listener
 {
 public:
     ChromaConsoleControllerAudioProcessorEditor(ChromaConsoleControllerAudioProcessor&);
@@ -29,6 +31,12 @@ public:
 private:
     ChromaConsoleControllerAudioProcessor& audioProcessor;
     CoveLNF lnf;
+
+    // Updates
+	UpdateChecker updateChecker;
+    void updateAvailable(const juce::String& newVersion,
+        const juce::String& downloadUrl,
+        const juce::String& changelog) override;
 
     // UI Components
     juce::ComboBox channelSelector;

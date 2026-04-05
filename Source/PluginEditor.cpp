@@ -35,9 +35,11 @@ ChromaConsoleControllerAudioProcessorEditor::ChromaConsoleControllerAudioProcess
     audioProcessor(p),
     channelAttachment(p.parameters, "midiChannel", channelSelector),
     updateAttachment(p.parameters, "updateValues", updateButton),
-    presetBrowser(p.getPresetManager(), p.getPresetMidiHandler())
+    presetBrowser(p.getPresetManager(), p.getPresetMidiHandler()),
+    updateChecker(this)
 {    
     setLookAndFeel(&lnf);
+    updateChecker.checkForUpdate();
 
     // Preset Browser =========================
     // Preset Browser button
@@ -105,6 +107,20 @@ ChromaConsoleControllerAudioProcessorEditor::ChromaConsoleControllerAudioProcess
 ChromaConsoleControllerAudioProcessorEditor::~ChromaConsoleControllerAudioProcessorEditor()
 {
     setLookAndFeel(nullptr);
+}
+
+void ChromaConsoleControllerAudioProcessorEditor::updateAvailable(const juce::String& newVersion,
+    const juce::String& downloadUrl,
+    const juce::String& changelog)
+{
+    auto result = juce::AlertWindow::showOkCancelBox(
+        juce::MessageBoxIconType::InfoIcon,
+        "Update Available",
+        "Version " + newVersion + " is available.\n\n + changelog:\n" + changelog, 
+        "Download", "Later", this, nullptr);
+
+    if (result)
+        juce::URL(downloadUrl).launchInDefaultBrowser();
 }
 
 void ChromaConsoleControllerAudioProcessorEditor::setLAF()
