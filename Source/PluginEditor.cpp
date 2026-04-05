@@ -165,6 +165,22 @@ void ChromaConsoleControllerAudioProcessorEditor::createCCModules()
 
     for (const auto& config : configs) {
         auto module = std::make_unique<CCSliderModule>(audioProcessor, config);
+        if (module->getParameterID() == "cModule" ||
+            module->getParameterID() == "dModule" ||
+            module->getParameterID() == "mModule" ||
+            module->getParameterID() == "tModule" ||
+            module->getParameterID() == "bypass1" ||
+            module->getParameterID() == "bypass2" ||
+            module->getParameterID() == "gesturePlayRec" ||
+            module->getParameterID() == "gestureStopErase" ||
+            module->getParameterID() == "capture" ||
+            module->getParameterID() == "captureRouting" ||
+            module->getParameterID() == "filterMode" ||
+            module->getParameterID() == "calibrationLevel" ||
+            module->getParameterID() == "calibrationMenu") {
+            // These are the column header modules, set them to enabled by default
+            module->getSlider().setTextBoxIsEditable(false);
+        }
         addAndMakeVisible(*module);
         ccModules.push_back(std::move(module));
     }

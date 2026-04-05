@@ -3,7 +3,7 @@
 <JUCERPROJECT id="QKnDfl" name="Chroma Console Controller" projectType="audioplug"
               useAppConfig="0" addUsingNamespaceToJuceHeader="0" jucerFormatVersion="1"
               pluginCharacteristicsValue="pluginIsMidiEffectPlugin,pluginProducesMidiOut,pluginWantsMidiIn"
-              version="0.402" companyName="Cove" companyWebsite="https://www.covedsp.com/"
+              version="0.4.4" companyName="Cove" companyWebsite="https://www.covedsp.com/"
               pluginFormats="buildVST3" pluginName="Chroma Console Controller"
               pluginDesc="A midi controller for the Hologram Electronics Chroma Console"
               pluginManufacturer="Cove" pluginAUMainType="'aumi'" pluginVSTCategory="kPlugCategUnknown"
@@ -45,6 +45,8 @@
     <MODULE id="juce_audio_plugin_client" showAllCode="1" useLocalCopy="0"
             useGlobalPath="1"/>
     <MODULE id="juce_audio_processors" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_audio_processors_headless" showAllCode="1" useLocalCopy="0"
+            useGlobalPath="1"/>
     <MODULE id="juce_audio_utils" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
     <MODULE id="juce_core" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
     <MODULE id="juce_data_structures" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
@@ -61,9 +63,9 @@
       <CONFIGURATIONS>
         <CONFIGURATION isDebug="1" name="Debug" targetName="ChromaConsoleController"
                        enableIncrementalLinking="1" debugInformationFormat="OldStyle"
-                       enablePluginBinaryCopyStep="1" vst3BinaryLocation_x64="F:\General File Transfers\Plugins\Custom"/>
+                       enablePluginBinaryCopyStep="1" vst3BinaryLocation_x64="C:\Users\tjbac\Documents\General File Transfer\Plugins\Custom"/>
         <CONFIGURATION isDebug="0" name="Release" targetName="ChromaConsoleController"
-                       enablePluginBinaryCopyStep="1" vst3BinaryLocation_x64="F:\General File Transfers\Plugins\Custom"/>
+                       enablePluginBinaryCopyStep="1" vst3BinaryLocation_x64="C:\Users\tjbac\Documents\General File Transfer\Plugins\Custom"/>
       </CONFIGURATIONS>
       <MODULEPATHS>
         <MODULEPATH id="juce_audio_basics" path="../../Juce_8_Library/JUCE/modules"/>
@@ -80,6 +82,7 @@
         <MODULEPATH id="juce_gui_extra" path="../../Juce_8_Library/JUCE/modules"/>
         <MODULEPATH id="juce_midi_ci" path="../../Juce_8_Library/JUCE/modules"/>
         <MODULEPATH id="melatonin_inspector" path="../../../modules/melatonin_inspector-main"/>
+        <MODULEPATH id="juce_audio_processors_headless" path="../JUCE/modules"/>
       </MODULEPATHS>
     </VS2022>
     <LINUX_MAKE targetFolder="Builds/LinuxMakefile">
@@ -102,7 +105,33 @@
         <MODULEPATH id="juce_gui_extra" path="../../juce"/>
         <MODULEPATH id="juce_midi_ci" path="../../juce"/>
         <MODULEPATH id="melatonin_inspector" path="../../../modules/melatonin_inspector-main"/>
+        <MODULEPATH id="juce_audio_processors_headless" path="../JUCE/modules"/>
       </MODULEPATHS>
     </LINUX_MAKE>
+    <VS2026 targetFolder="Builds/VisualStudio2026">
+      <CONFIGURATIONS>
+        <CONFIGURATION isDebug="1" name="Debug" enablePluginBinaryCopyStep="1" vst3BinaryLocation_x64="C:\Users\tjbac\Documents\General File Transfer\Plugins\Custom"
+                       targetName="ChromaConsoleController"/>
+        <CONFIGURATION isDebug="0" name="Release" enablePluginBinaryCopyStep="1" vst3BinaryLocation_x64="C:\Users\tjbac\Documents\General File Transfer\Plugins\Custom"
+                       targetName="ChromaConsoleController"/>
+      </CONFIGURATIONS>
+      <MODULEPATHS>
+        <MODULEPATH id="juce_audio_basics" path="C:\Users\tjbac\Git-projects\JUCE\modules"/>
+        <MODULEPATH id="juce_audio_devices" path="C:\Users\tjbac\Git-projects\JUCE\modules"/>
+        <MODULEPATH id="juce_audio_formats" path="C:\Users\tjbac\Git-projects\JUCE\modules"/>
+        <MODULEPATH id="juce_audio_plugin_client" path="C:\Users\tjbac\Git-projects\JUCE\modules"/>
+        <MODULEPATH id="juce_audio_processors" path="C:\Users\tjbac\Git-projects\JUCE\modules"/>
+        <MODULEPATH id="juce_audio_processors_headless" path="C:\Users\tjbac\Git-projects\JUCE\modules"/>
+        <MODULEPATH id="juce_audio_utils" path="C:\Users\tjbac\Git-projects\JUCE\modules"/>
+        <MODULEPATH id="juce_core" path="C:\Users\tjbac\Git-projects\JUCE\modules"/>
+        <MODULEPATH id="juce_data_structures" path="C:\Users\tjbac\Git-projects\JUCE\modules"/>
+        <MODULEPATH id="juce_events" path="C:\Users\tjbac\Git-projects\JUCE\modules"/>
+        <MODULEPATH id="juce_graphics" path="C:\Users\tjbac\Git-projects\JUCE\modules"/>
+        <MODULEPATH id="juce_gui_basics" path="C:\Users\tjbac\Git-projects\JUCE\modules"/>
+        <MODULEPATH id="juce_gui_extra" path="C:\Users\tjbac\Git-projects\JUCE\modules"/>
+        <MODULEPATH id="juce_midi_ci" path="C:\Users\tjbac\Git-projects\JUCE\modules"/>
+        <MODULEPATH id="melatonin_inspector" path="../../../modules/melatonin_inspector-main"/>
+      </MODULEPATHS>
+    </VS2026>
   </EXPORTFORMATS>
 </JUCERPROJECT>

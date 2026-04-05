@@ -10,6 +10,12 @@
 #include "PluginEditor.h"
 
 const std::vector<CCControllerConfig> ChromaConsoleControllerAudioProcessor::ccConfigurations = {
+    // ccConfigurations order is
+	// MIDI Channel
+    // Config ID
+    // Config Name
+    // Default Value
+   
      // Modules
     { 16, "cModule", "Character Module", 5}, // Character Module
     { 17, "mModule", "Movement Module", 5}, // Movement Module
@@ -81,6 +87,16 @@ ChromaConsoleControllerAudioProcessor::~ChromaConsoleControllerAudioProcessor()
 
 juce::AudioProcessorValueTreeState::ParameterLayout ChromaConsoleControllerAudioProcessor::createParameterLayout()
 {
+    auto stringFromValue = [](float value, int /*maxLen*/) -> juce::String
+        {
+            auto percent = (value / 127.0f) * 100.0f; // Convert to percentage
+            if (std::abs(percent) >= 100.0f)
+                return juce::String(percent, 0) + " %";  // "100", "250"
+            if (std::abs(percent) >= 10.0f)
+                return juce::String(percent, 1) + " %";  // "10.0", "99.5"
+            return juce::String(percent, 2) + " %";      // "0.50", "9.99"
+        };
+
     juce::AudioProcessorValueTreeState::ParameterLayout layout;
 
     // Add MIDI channel parameter
@@ -180,6 +196,15 @@ juce::AudioProcessorValueTreeState::ParameterLayout ChromaConsoleControllerAudio
         else return juce::String("Enter");
         });
 
+	auto defaultAttribute = juce::AudioParameterIntAttributes().withStringFromValueFunction(stringFromValue)
+        .withValueFromStringFunction([](const juce::String& text) -> int
+            {
+                // Strip the " %" suffix, convert percentage back to 0-127
+                float percent = text.trimCharactersAtEnd(" %").getFloatValue();
+                return juce::roundToInt((percent / 100.0f) * 127.0f);
+            });;
+
+
     // Create parameters for each CC
     for (const auto& config : ccConfigurations) {
         // Character Module
@@ -251,7 +276,7 @@ juce::AudioProcessorValueTreeState::ParameterLayout ChromaConsoleControllerAudio
         else {
             layout.add(std::make_unique<juce::AudioParameterInt>(
                 config.parameterID, config.name,
-                0, 127, static_cast<int>(config.defaultValue)));
+                0, 127, static_cast<int>(config.defaultValue), defaultAttribute));
         }
     }
 
