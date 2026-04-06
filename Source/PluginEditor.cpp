@@ -39,7 +39,6 @@ ChromaConsoleControllerAudioProcessorEditor::ChromaConsoleControllerAudioProcess
     updateChecker(this)
 {    
     setLookAndFeel(&lnf);
-    updateChecker.checkForUpdate();
 
     // Preset Browser =========================
     // Preset Browser button
@@ -49,7 +48,10 @@ ChromaConsoleControllerAudioProcessorEditor::ChromaConsoleControllerAudioProcess
 
     // Add preset browser
     addChildComponent(presetBrowser);
-    presetBrowser.setVisible(false);
+    
+    showPresetBrowser = getPresetBrowserVisible();
+	presetBrowser.setVisible(showPresetBrowser);
+	presetButton.setButtonText(showPresetBrowser ? "Hide Presets" : "Presets");
 
     // Main Setup ==============================
     // Setup channel selector
@@ -70,6 +72,26 @@ ChromaConsoleControllerAudioProcessorEditor::ChromaConsoleControllerAudioProcess
     advancedButton.setButtonText(getShowAdvancedSettings() ? "Hide Advanced" : "Advanced Settings");
     advancedButton.onClick = [this]() { toggleAdvancedSettings(); };
 
+    // Setup auto update button
+    addAndMakeVisible(autoUpdateButton);
+    autoUpdateButton.setClickingTogglesState(true);
+    bool autoUpdateEnabled = getAutoCheckForUpdates();
+    autoUpdateButton.setToggleState(autoUpdateEnabled, juce::dontSendNotification);
+    autoUpdateButton.setButtonText(autoUpdateEnabled ? "Auto-Update: On" : "Auto-Update: Off");
+    autoUpdateButton.onClick = [this]() {
+        bool newState = autoUpdateButton.getToggleState();
+        setAutoCheckForUpdates(newState);
+        autoUpdateButton.setButtonText(newState ? "Auto-Update: On" : "Auto-Update: Off");
+        };
+
+	// Check for updates on startup if enabled
+    if (getAutoCheckForUpdates() && !audioProcessor.hasCheckedForUpdates)
+    {
+		audioProcessor.hasCheckedForUpdates = true; // Ensure we only check once per session
+        updateChecker.checkForUpdate();
+    }
+        
+
     // Setup version label
     versionNumber.setText(JucePlugin_VersionString, juce::dontSendNotification);
     versionNumber.setJustificationType(juce::Justification::centred);
@@ -89,7 +111,8 @@ ChromaConsoleControllerAudioProcessorEditor::ChromaConsoleControllerAudioProcess
     
     // Calculate initial height for basic view
     int initialHeight = calculateIdealHeight();
-    setSize(600, initialHeight);
+    int initialWidth = 600 + (showPresetBrowser ? presetBrowserWidth + padding : 0);
+    setSize(initialWidth, initialHeight);
 
     setLAF();
 
@@ -113,14 +136,29 @@ void ChromaConsoleControllerAudioProcessorEditor::updateAvailable(const juce::St
     const juce::String& downloadUrl,
     const juce::String& changelog)
 {
-    auto result = juce::AlertWindow::showOkCancelBox(
-        juce::MessageBoxIconType::InfoIcon,
-        "Update Available",
-        "Version " + newVersion + " is available.\n\n + changelog:\n" + changelog, 
-        "Download", "Later", this, nullptr);
+    auto options = juce::MessageBoxOptions()
+        .withIconType(juce::MessageBoxIconType::InfoIcon)
+        .withTitle("Update Available")
+        .withMessage("Version " + newVersion + " is available.\n\nCurrent Version: " + JucePlugin_VersionString + "\n\nChangelog:\n" + changelog)
+        .withButton("Download")
+        .withButton("Later")
+        .withAssociatedComponent(this);
 
-    if (result)
-        juce::URL(downloadUrl).launchInDefaultBrowser();
+    juce::AlertWindow::showAsync(options, [downloadUrl](int result)
+        {
+            if (result == 1) // 1 = first button ("Download")
+            {
+                bool launched = juce::URL(downloadUrl).launchInDefaultBrowser();
+                std::cout << "Result of window launched: " << launched <<  "\n\nURL: " << downloadUrl << std::endl;
+                if (!launched)
+                {
+                    juce::AlertWindow::showMessageBoxAsync(
+                        juce::MessageBoxIconType::WarningIcon,
+                        "Unable to Open Browser",
+                        "Please visit the following URL to download the update:\n" + downloadUrl);
+                }
+            }
+        });
 }
 
 void ChromaConsoleControllerAudioProcessorEditor::setLAF()
@@ -252,6 +290,8 @@ void ChromaConsoleControllerAudioProcessorEditor::resized()
 
     // Footer area for advanced button
     auto footerArea = area.removeFromBottom(footerHeight);
+	area.removeFromBottom(padding); // add small padding at bottom
+    autoUpdateButton.setBounds(footerArea.removeFromLeft(130).withSizeKeepingCentre(130, 25));
     advancedButton.setBounds(footerArea.withSizeKeepingCentre(150, 25));
 
     // Calculate grid layout
@@ -309,7 +349,7 @@ int ChromaConsoleControllerAudioProcessorEditor::calculateIdealHeight() const
     const int visibleRows = calculateVisibleRows();
     const int cellHeight = 120; // Approximate height per cell
 
-    int idealHeight = headerHeight + footerHeight + (visibleRows * cellHeight) + (2 * padding);
+    int idealHeight = headerHeight + footerHeight + padding + (visibleRows * cellHeight) + (2 * padding);
 
     // Ensure we don't go below the minimum height restriction
     idealHeight = std::max(idealHeight, constrainer.getMinimumHeight());
@@ -340,6 +380,17 @@ void ChromaConsoleControllerAudioProcessorEditor::toggleAdvancedSettings()
     for (int i = visibleModuleCount; i < ccModules.size(); ++i) {
         ccModules[i]->setVisible(newState);
     }
+}
+
+bool ChromaConsoleControllerAudioProcessorEditor::getAutoCheckForUpdates() const
+{
+    auto* property = audioProcessor.parameters.state.getPropertyPointer("autoCheckForUpdates");
+    return property != nullptr ? (bool)*property : true; // default to true if no parameter is found
+}
+
+void ChromaConsoleControllerAudioProcessorEditor::setAutoCheckForUpdates(bool enabled)
+{
+    audioProcessor.parameters.state.setProperty("autoCheckForUpdates", enabled, nullptr);
 }
 
 int ChromaConsoleControllerAudioProcessorEditor::calculateNumRows() const
@@ -466,6 +517,7 @@ void ChromaConsoleControllerAudioProcessorEditor::togglePresetBrowser()
 {
     showPresetBrowser = !showPresetBrowser;
     presetBrowser.setVisible(showPresetBrowser);
+    setPresetBrowserVisible(showPresetBrowser);
 
     // Update button text
     presetButton.setButtonText(showPresetBrowser ? "Hide Presets" : "Presets");
@@ -486,4 +538,15 @@ void ChromaConsoleControllerAudioProcessorEditor::togglePresetBrowser()
     animator.animateComponent(this,
         getBounds().withWidth(newWidth),
         1.0f, 200, false, 1.0, 0.0);
+}
+
+bool ChromaConsoleControllerAudioProcessorEditor::getPresetBrowserVisible() const
+{
+    auto* property = audioProcessor.parameters.state.getPropertyPointer("presetBrowserVisible");
+    return property != nullptr ? (bool)*property : false;
+}
+
+void ChromaConsoleControllerAudioProcessorEditor::setPresetBrowserVisible(bool visible)
+{
+    audioProcessor.parameters.state.setProperty("presetBrowserVisible", visible, nullptr);
 }

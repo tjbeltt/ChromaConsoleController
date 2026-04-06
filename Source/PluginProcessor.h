@@ -76,6 +76,8 @@ public:
 
     PresetManager& getPresetManager() { return presetManager; }
     PresetMidiHandler& getPresetMidiHandler() { return presetMidiHandler; }
+
+    bool hasCheckedForUpdates = false;
 private:
     std::unordered_map<int, int> previousCCValues; // CC number -> last value
 

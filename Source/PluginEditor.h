@@ -42,6 +42,7 @@ private:
     juce::ComboBox channelSelector;
     juce::TextButton updateButton;
     juce::TextButton advancedButton;
+    juce::TextButton autoUpdateButton;
     juce::Label versionNumber;
     juce::ComponentBoundsConstrainer constrainer;
     
@@ -110,6 +111,10 @@ private:
     juce::Colour getColourForValue(int value) const;
     bool getShowAdvancedSettings() const;
     void setShowAdvancedSettings(bool show);
+    bool getAutoCheckForUpdates() const;
+    void setAutoCheckForUpdates(bool enabled);
+    bool getPresetBrowserVisible() const;
+	void setPresetBrowserVisible(bool visible);
     
 
     // Preset Browser
