@@ -168,7 +168,7 @@ void PresetBrowserComponent::presetListChanged()
 
 void PresetBrowserComponent::currentPresetChanged()
 {
-    auto* currentPreset = presetManager.getCurrentPreset();
+    auto currentPreset = presetManager.getCurrentPreset();
     if (currentPreset)
     {
         currentPresetLabel.setText(currentPreset->name + " (" + currentPreset->category + ")", juce::dontSendNotification);
@@ -198,9 +198,9 @@ void PresetBrowserComponent::currentPresetChanged()
 void PresetBrowserComponent::timerCallback()
 {
     // Enable/disable based on state
-    auto* currentPreset = presetManager.getCurrentPreset();
-    deleteButton.setEnabled(currentPreset != nullptr);
-    midiMapButton.setEnabled(currentPreset != nullptr);
+    auto currentPreset = presetManager.getCurrentPreset();
+    deleteButton.setEnabled(currentPreset.has_value());
+    midiMapButton.setEnabled(currentPreset.has_value());
 
     preserveMidiChannelButton.setToggleState(
         presetManager.getPreserveMidiChannel(),
@@ -267,7 +267,7 @@ void PresetBrowserComponent::showSavePresetDialog()
 
 void PresetBrowserComponent::showDeletePresetDialog()
 {
-    auto* currentPreset = presetManager.getCurrentPreset();
+    auto currentPreset = presetManager.getCurrentPreset();
     if (!currentPreset)
         return;
 
@@ -297,7 +297,7 @@ void PresetBrowserComponent::showMidiMappingDialog()
 {
     juce::File presetFile;
     {
-        auto* currentPreset = presetManager.getCurrentPreset();
+        auto currentPreset = presetManager.getCurrentPreset();
         if (!currentPreset)
             return;
         presetFile = currentPreset->file;

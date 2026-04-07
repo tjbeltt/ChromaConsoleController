@@ -109,15 +109,18 @@ void PresetMidiHandler::handleNoteOn(int noteNumber, int velocity, int channel)
 
     if (learningMode.load())
     {
-        auto* currentPreset = presetManager.getCurrentPreset();
+        auto currentPreset = presetManager.getCurrentPreset();
         if (currentPreset)
         {
-            presetManager.setMidiNoteForPreset(currentPreset->file, noteNumber);
+            juce::File presetFile = currentPreset->file;
+            juce::String presetName = currentPreset->name;
+            
+            presetManager.setMidiNoteForPreset(presetFile, noteNumber);
 
             // Auto disable learning mode after assignment
             learningMode.store(false);
 
-            DBG("MIDI note " << noteNumber << "assigned to preset: " << currentPreset->name);
+            DBG("MIDI note " << noteNumber << "assigned to preset: " << presetName);
         }
         return;
     }

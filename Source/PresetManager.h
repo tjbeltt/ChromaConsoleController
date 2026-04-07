@@ -54,7 +54,7 @@ public:
     void loadNextPreset();
     void loadPreviousPreset();
     int getCurrentPresetIndex() const;
-    const Preset* getCurrentPreset() const;
+    std::optional<Preset> getCurrentPreset() const;
 
     //================================
     // Preset Bank Management

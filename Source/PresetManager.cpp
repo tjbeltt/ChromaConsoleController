@@ -92,11 +92,12 @@ bool PresetManager::writePresetToFile(const juce::File& presetFile, const juce::
     if (xml == nullptr || !xml->writeToFile(presetFile, {}))
         return false;
 
+    scanPresetsInDirectory();
+
     // Update preset list
     {
         const juce::ScopedLock sl(presetLock);
-        scanPresetsInDirectory();
-
+        
         for (int i = 0; i < presets.size(); i++)
         {
             if (presets[i].file == presetFile)
@@ -296,8 +297,10 @@ bool PresetManager::deletePreset(const juce::File& presetFile)
             midiNoteToPreset.remove(note);
 
         if (!notesToRemove.isEmpty())
-            saveMidiMappings();
+        { }
     }
+
+    saveMidiMappings();
 
     bool success = presetFile.deleteFile();
 
@@ -311,7 +314,7 @@ bool PresetManager::deletePreset(const juce::File& presetFile)
                 deletedCurrentPreset = (presets[currentPresetIndex].file == presetFile);
         }
         scanPresetsInDirectory();
-        notifyPresetListChanged();
+        
 
         if (deletedCurrentPreset)
         {
@@ -319,8 +322,11 @@ bool PresetManager::deletePreset(const juce::File& presetFile)
                 const juce::ScopedLock sl(presetLock);
                 currentPresetIndex = -1;
             }
-            notifyCurrentPresetChanged();
         }
+
+        notifyPresetListChanged();
+        if (deletedCurrentPreset)
+			notifyCurrentPresetChanged();
     }
 
     return success;
@@ -370,13 +376,13 @@ int PresetManager::getCurrentPresetIndex() const
     return currentPresetIndex;
 }
 
-const PresetManager::Preset* PresetManager::getCurrentPreset() const
+std::optional<PresetManager::Preset> PresetManager::getCurrentPreset() const
 {
     const juce::ScopedLock sl(presetLock);
     if (currentPresetIndex >= 0 && currentPresetIndex < presets.size())
-        return &presets[currentPresetIndex];
+        return presets[currentPresetIndex];
 
-    return nullptr;
+    return std::nullopt;
 }
 
 juce::Array<PresetManager::Preset> PresetManager::getAllPresets() const
@@ -476,9 +482,10 @@ bool PresetManager::setMidiNoteForPreset(const juce::File& presetFile, int midiN
                     {
                         const juce::ScopedLock sl(midiMappingLock);
                         midiNoteToPreset.set(midiNote, presetFile);
-                        saveMidiMappings();
+                        
                     }
 
+                    saveMidiMappings();
                     scanPresetsInDirectory();
                     notifyPresetListChanged();
                 }
@@ -491,9 +498,10 @@ bool PresetManager::setMidiNoteForPreset(const juce::File& presetFile, int midiN
     {
         const juce::ScopedLock sl(midiMappingLock);
         midiNoteToPreset.set(midiNote, presetFile);
-        saveMidiMappings();
+        
     }
 
+    saveMidiMappings();
     scanPresetsInDirectory();
     notifyPresetListChanged();
 
@@ -502,12 +510,15 @@ bool PresetManager::setMidiNoteForPreset(const juce::File& presetFile, int midiN
 
 bool PresetManager::loadPresetFromMidiNote(int midiNote)
 {
-    const juce::ScopedLock sl(midiMappingLock);
-    if (midiNoteToPreset.contains(midiNote))
+    juce::File presetFile;
     {
-        auto presetFile = midiNoteToPreset[midiNote];
-        return loadPreset(presetFile);
+		const juce::ScopedLock sl(midiMappingLock);
+		if (midiNoteToPreset.contains(midiNote))
+            presetFile = midiNoteToPreset[midiNote];
     }
+
+    if (presetFile.existsAsFile())
+        return loadPreset(presetFile);
 
     return false;
 }
@@ -530,10 +541,10 @@ void PresetManager::clearMidiMapping(int midiNote)
     {
         const juce::ScopedLock sl(midiMappingLock);
         midiNoteToPreset.remove(midiNote);
-        saveMidiMappings();
+        
     }
 
-
+    saveMidiMappings();
     scanPresetsInDirectory();
     notifyPresetListChanged();
 }
@@ -701,16 +712,17 @@ PresetManager::Preset PresetManager::loadPresetFromFile(const juce::File& file)
 
 void PresetManager::saveMidiMappings()
 {
-    const juce::ScopedLock sl(midiMappingLock);
-
     juce::ValueTree mappings("MidiMappings");
-
-    for (juce::HashMap<int, juce::File>::Iterator i(midiNoteToPreset); i.next();)
     {
-        juce::ValueTree item("Mapping");
-        item.setProperty("note", i.getKey(), nullptr);
-        item.setProperty("preset", i.getValue().getFullPathName(), nullptr);
-        mappings.appendChild(item, nullptr);
+        const juce::ScopedLock sl(midiMappingLock);
+
+        for (juce::HashMap<int, juce::File>::Iterator i(midiNoteToPreset); i.next();)
+        {
+            juce::ValueTree item("Mapping");
+            item.setProperty("note", i.getKey(), nullptr);
+            item.setProperty("preset", i.getValue().getFullPathName(), nullptr);
+            mappings.appendChild(item, nullptr);
+        }
     }
 
     auto xml = mappings.createXml();
