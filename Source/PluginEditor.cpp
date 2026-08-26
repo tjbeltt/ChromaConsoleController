@@ -187,7 +187,7 @@ void ChromaConsoleControllerAudioProcessorEditor::setLAF()
     
     //Slider
     laf.setColour(juce::Slider::ColourIds::rotarySliderFillColourId, Colors::text);
-    laf.setColour(juce::Slider::ColourIds::rotarySliderOutlineColourId, juce::Colour(0.0f, 0.0f, 0.0f, 0.0f));
+    laf.setColour(juce::Slider::ColourIds::rotarySliderOutlineColourId, Colors::bg_dark);
     laf.setColour(juce::Slider::ColourIds::textBoxBackgroundColourId, Colors::bg_light);
     laf.setColour(juce::Slider::ColourIds::textBoxTextColourId, Colors::text);
     laf.setColour(juce::Slider::ColourIds::textBoxHighlightColourId, Colors::highlight);
@@ -195,7 +195,7 @@ void ChromaConsoleControllerAudioProcessorEditor::setLAF()
     laf.setColour(juce::Slider::ColourIds::thumbColourId, Colors::bg_light);
     laf.setColour(CoveLNF::CoveRotarySlider::thumbEnabledID, Colors::text);
     laf.setColour(CoveLNF::CoveRotarySlider::thumbDisabledID, Colors::text_muted);
-    laf.setColour(CoveLNF::CoveRotarySlider::backgroundArcID, Colors::bg_dark);
+    laf.setColour(CoveLNF::CoveRotarySlider::backgroundArcID, Colors::border_muted);
 
     //ComboBox
     laf.setColour(juce::ComboBox::backgroundColourId, Colors::bg_light);

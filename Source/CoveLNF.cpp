@@ -23,61 +23,59 @@ struct DebugLabel : public juce::Label
 void CoveLNF::drawRotarySlider(juce::Graphics& g, int x, int y, int width, int height, float sliderPos,
     const float rotaryStartAngle, const float rotaryEndAngle, juce::Slider& slider)
 {
-    auto outline = slider.findColour(juce::Slider::rotarySliderOutlineColourId);
-    auto bgArc = slider.findColour(CoveLNF::CoveRotarySlider::backgroundArcID);
-    auto fill = slider.findColour(juce::Slider::rotarySliderFillColourId);
+    auto fill    = slider.findColour(juce::Slider::rotarySliderFillColourId);
+    auto bgArc   = slider.findColour(CoveLNF::CoveRotarySlider::backgroundArcID);
+    auto bodyCol = slider.findColour(juce::Slider::rotarySliderOutlineColourId);
+    auto thumbOn = slider.findColour(CoveLNF::CoveRotarySlider::thumbEnabledID);
+    auto thumbOff= slider.findColour(CoveLNF::CoveRotarySlider::thumbDisabledID);
 
-    auto bounds = juce::Rectangle<int>(x, y, width, height).toFloat().reduced(10);
-
+    auto bounds = juce::Rectangle<int>(x, y, width, height).toFloat().reduced(4);
+    auto cx = bounds.getCentreX();
+    auto cy = bounds.getCentreY();
     auto radius = juce::jmin(bounds.getWidth(), bounds.getHeight()) / 2.0f;
     auto toAngle = rotaryStartAngle + sliderPos * (rotaryEndAngle - rotaryStartAngle);
-    auto lineW = juce::jmin(8.0f, radius * 0.5f);
-    auto arcRadius = radius - lineW * 0.5f;
+    const float halfPi = juce::MathConstants<float>::halfPi;
 
-    juce::Path backgroundArc;
-    backgroundArc.addCentredArc(bounds.getCentreX(),
-        bounds.getCentreY(),
-        arcRadius,
-        arcRadius,
-        0.0f,
-        rotaryStartAngle,
-        rotaryEndAngle,
-        true);
+    // Tick marks (panel-style markings around the knob)
+    const int numTicks = 21;
+    const float tickOuter = radius;
+    const float tickLen   = radius * 0.13f;
+    const float tickW     = juce::jmax(1.0f, radius * 0.045f);
 
-    g.setColour(bgArc);
-    g.strokePath(backgroundArc, juce::PathStrokeType(lineW, juce::PathStrokeType::curved, juce::PathStrokeType::rounded));
+    for (int i = 0; i < numTicks; ++i)
+    {
+        float t = (float)i / (float)(numTicks - 1);
+        float angle = rotaryStartAngle + t * (rotaryEndAngle - rotaryStartAngle);
+        bool active = slider.isEnabled() && (angle <= toAngle + 0.001f);
+        g.setColour(active ? fill : bgArc);
 
+        float cosA = std::cos(angle - halfPi);
+        float sinA = std::sin(angle - halfPi);
+        g.drawLine(cx + (tickOuter - tickLen) * cosA, cy + (tickOuter - tickLen) * sinA,
+                   cx + tickOuter * cosA,              cy + tickOuter * sinA,
+                   tickW);
+    }
+
+    // Knob body (dark circle representing the physical knob)
+    float bodyR = radius * 0.62f;
+    g.setColour(bodyCol);
+    g.fillEllipse(cx - bodyR, cy - bodyR, bodyR * 2.0f, bodyR * 2.0f);
+
+    // Colored cap (flat colored top, matches hardware column color)
+    float capR = radius * 0.44f;
+    g.setColour(slider.isEnabled() ? fill : thumbOff);
+    g.fillEllipse(cx - capR, cy - capR, capR * 2.0f, capR * 2.0f);
+
+    // Position indicator line on the cap
     if (slider.isEnabled())
     {
-        juce::Path valueArc;
-        valueArc.addCentredArc(bounds.getCentreX(),
-            bounds.getCentreY(),
-            arcRadius,
-            arcRadius,
-            0.0f,
-            rotaryStartAngle,
-            toAngle,
-            true);
-
-        g.setColour(fill);
-        g.strokePath(valueArc, juce::PathStrokeType(lineW, juce::PathStrokeType::curved, juce::PathStrokeType::rounded));
+        float cosA = std::cos(toAngle - halfPi);
+        float sinA = std::sin(toAngle - halfPi);
+        g.setColour(thumbOn);
+        g.drawLine(cx + capR * 0.15f * cosA, cy + capR * 0.15f * sinA,
+                   cx + capR * 0.82f * cosA, cy + capR * 0.82f * sinA,
+                   juce::jmax(1.5f, radius * 0.05f));
     }
-
-    auto thumbWidth = lineW * 2.0f;
-    juce::Point<float> thumbPoint(bounds.getCentreX() + arcRadius * std::cos(toAngle - juce::MathConstants<float>::halfPi),
-        bounds.getCentreY() + arcRadius * std::sin(toAngle - juce::MathConstants<float>::halfPi));
-
-    if (slider.isEnabled())
-    {
-        g.setColour(slider.findColour(CoveLNF::CoveRotarySlider::thumbEnabledID));
-        g.fillEllipse(juce::Rectangle<float>(thumbWidth, thumbWidth).withCentre(thumbPoint));
-    }
-    else
-    {
-        g.setColour(slider.findColour(CoveLNF::CoveRotarySlider::thumbDisabledID));
-        g.fillEllipse(juce::Rectangle<float>(thumbWidth, thumbWidth).withCentre(thumbPoint));
-    }
-    
 }
 
 juce::Label* CoveLNF::createSliderTextBox(juce::Slider& slider)
