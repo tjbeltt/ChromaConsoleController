@@ -41,23 +41,20 @@
     </GROUP>
   </MAINGROUP>
   <MODULES>
-    <MODULE id="juce_audio_basics" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
-    <MODULE id="juce_audio_devices" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
-    <MODULE id="juce_audio_formats" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
-    <MODULE id="juce_audio_plugin_client" showAllCode="1" useLocalCopy="0"
+    <MODULE id="juce_audio_basics" showAllCode="1" useLocalCopy="1" useGlobalPath="0"/>
+    <MODULE id="juce_audio_devices" showAllCode="1" useLocalCopy="1" useGlobalPath="1"/>
+    <MODULE id="juce_audio_formats" showAllCode="1" useLocalCopy="1" useGlobalPath="1"/>
+    <MODULE id="juce_audio_plugin_client" showAllCode="1" useLocalCopy="1"
             useGlobalPath="1"/>
-    <MODULE id="juce_audio_processors" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
-    <MODULE id="juce_audio_processors_headless" showAllCode="1" useLocalCopy="0"
-            useGlobalPath="1"/>
-    <MODULE id="juce_audio_utils" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
-    <MODULE id="juce_core" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
-    <MODULE id="juce_data_structures" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
-    <MODULE id="juce_events" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
-    <MODULE id="juce_graphics" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
-    <MODULE id="juce_gui_basics" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
-    <MODULE id="juce_gui_extra" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
-    <MODULE id="juce_midi_ci" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
-    <MODULE id="melatonin_inspector" showAllCode="1" useLocalCopy="1" useGlobalPath="0"/>
+    <MODULE id="juce_audio_processors" showAllCode="1" useLocalCopy="1" useGlobalPath="1"/>
+    <MODULE id="juce_audio_utils" showAllCode="1" useLocalCopy="1" useGlobalPath="1"/>
+    <MODULE id="juce_core" showAllCode="1" useLocalCopy="1" useGlobalPath="1"/>
+    <MODULE id="juce_data_structures" showAllCode="1" useLocalCopy="1" useGlobalPath="1"/>
+    <MODULE id="juce_events" showAllCode="1" useLocalCopy="1" useGlobalPath="1"/>
+    <MODULE id="juce_graphics" showAllCode="1" useLocalCopy="1" useGlobalPath="1"/>
+    <MODULE id="juce_gui_basics" showAllCode="1" useLocalCopy="1" useGlobalPath="1"/>
+    <MODULE id="juce_gui_extra" showAllCode="1" useLocalCopy="1" useGlobalPath="1"/>
+    <MODULE id="juce_midi_ci" showAllCode="1" useLocalCopy="1" useGlobalPath="1"/>
   </MODULES>
   <JUCEOPTIONS JUCE_STRICT_REFCOUNTEDPOINTER="1" JUCE_VST3_CAN_REPLACE_VST2="0"/>
   <EXPORTFORMATS>
@@ -70,21 +67,19 @@
                        enablePluginBinaryCopyStep="1" vst3BinaryLocation_x64="C:\Users\tjbac\Documents\General File Transfer\Plugins\Custom"/>
       </CONFIGURATIONS>
       <MODULEPATHS>
-        <MODULEPATH id="juce_audio_basics" path="../../Juce_8_Library/JUCE/modules"/>
-        <MODULEPATH id="juce_audio_devices" path="../../Juce_8_Library/JUCE/modules"/>
-        <MODULEPATH id="juce_audio_formats" path="../../Juce_8_Library/JUCE/modules"/>
-        <MODULEPATH id="juce_audio_plugin_client" path="../../Juce_8_Library/JUCE/modules"/>
-        <MODULEPATH id="juce_audio_processors" path="../../Juce_8_Library/JUCE/modules"/>
-        <MODULEPATH id="juce_audio_utils" path="../../Juce_8_Library/JUCE/modules"/>
-        <MODULEPATH id="juce_core" path="../../Juce_8_Library/JUCE/modules"/>
-        <MODULEPATH id="juce_data_structures" path="../../Juce_8_Library/JUCE/modules"/>
-        <MODULEPATH id="juce_events" path="../../Juce_8_Library/JUCE/modules"/>
-        <MODULEPATH id="juce_graphics" path="../../Juce_8_Library/JUCE/modules"/>
-        <MODULEPATH id="juce_gui_basics" path="../../Juce_8_Library/JUCE/modules"/>
-        <MODULEPATH id="juce_gui_extra" path="../../Juce_8_Library/JUCE/modules"/>
-        <MODULEPATH id="juce_midi_ci" path="../../Juce_8_Library/JUCE/modules"/>
-        <MODULEPATH id="melatonin_inspector" path="../../../modules/melatonin_inspector-main"/>
-        <MODULEPATH id="juce_audio_processors_headless" path="../JUCE/modules"/>
+        <MODULEPATH id="juce_audio_basics" path="..\..\..\..\..\..\..\Juce_8_Library\JUCE\modules"/>
+        <MODULEPATH id="juce_audio_devices" path="..\..\..\..\..\..\..\Juce_8_Library\JUCE\modules"/>
+        <MODULEPATH id="juce_audio_formats" path="..\..\..\..\..\..\..\Juce_8_Library\JUCE\modules"/>
+        <MODULEPATH id="juce_audio_plugin_client" path="..\..\..\..\..\..\..\Juce_8_Library\JUCE\modules"/>
+        <MODULEPATH id="juce_audio_processors" path="..\..\..\..\..\..\..\Juce_8_Library\JUCE\modules"/>
+        <MODULEPATH id="juce_audio_utils" path="..\..\..\..\..\..\..\Juce_8_Library\JUCE\modules"/>
+        <MODULEPATH id="juce_core" path="..\..\..\..\..\..\..\Juce_8_Library\JUCE\modules"/>
+        <MODULEPATH id="juce_data_structures" path="..\..\..\..\..\..\..\Juce_8_Library\JUCE\modules"/>
+        <MODULEPATH id="juce_events" path="..\..\..\..\..\..\..\Juce_8_Library\JUCE\modules"/>
+        <MODULEPATH id="juce_graphics" path="..\..\..\..\..\..\..\Juce_8_Library\JUCE\modules"/>
+        <MODULEPATH id="juce_gui_basics" path="..\..\..\..\..\..\..\Juce_8_Library\JUCE\modules"/>
+        <MODULEPATH id="juce_gui_extra" path="..\..\..\..\..\..\..\Juce_8_Library\JUCE\modules"/>
+        <MODULEPATH id="juce_midi_ci" path="..\..\..\..\..\..\..\Juce_8_Library\JUCE\modules"/>
       </MODULEPATHS>
     </VS2022>
     <LINUX_MAKE targetFolder="Builds/LinuxMakefile">
@@ -106,8 +101,6 @@
         <MODULEPATH id="juce_gui_basics" path="../../juce"/>
         <MODULEPATH id="juce_gui_extra" path="../../juce"/>
         <MODULEPATH id="juce_midi_ci" path="../../juce"/>
-        <MODULEPATH id="melatonin_inspector" path="../../../modules/melatonin_inspector-main"/>
-        <MODULEPATH id="juce_audio_processors_headless" path="../JUCE/modules"/>
       </MODULEPATHS>
     </LINUX_MAKE>
     <VS2026 targetFolder="Builds/VisualStudio2026">
