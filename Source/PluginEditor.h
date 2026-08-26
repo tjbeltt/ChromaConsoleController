@@ -13,7 +13,6 @@
 #include "PluginProcessor.h"
 #include "CCSliderModule.h"
 #include "CoveLNF.h"
-#include "melatonin_inspector/melatonin_inspector.h"
 #include "PresetBrowserComponent.h"
 #include "PresetMidiHandler.h"
 #include "UpdateChecker.h"
@@ -124,8 +123,6 @@ private:
     static constexpr int presetBrowserWidth = 300;
 
     void togglePresetBrowser();
-
-    //melatonin::Inspector inspector{ *this, false };
     
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(ChromaConsoleControllerAudioProcessorEditor)
